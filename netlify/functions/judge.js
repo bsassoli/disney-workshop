@@ -14,7 +14,7 @@ export default async (req, context) => {
     return new Response('Method not allowed', { status: 405 });
   }
 
-  const apiKey = Netlify.env.get('ANTHROPIC_API_KEY');
+  const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {
     return new Response(JSON.stringify({ error: 'API key non configurata' }), {
       status: 500,
