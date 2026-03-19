@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI App Challenge — Disney Italy</title>
+<link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --black: #000000;
+  --green: #00FF00;
+  --green-dim: #00cc00;
+  --gray: #888888;
+  --dark-gray: #111111;
+  --mid-gray: #2a2a2a;
+  --danger: #ff4444;
+}
+html { scroll-behavior: smooth; }
+body { background: var(--black); color: #fff; font-family: 'Inter', sans-serif; font-size: 14px; line-height: 1.65; min-height: 100vh; }
+
+nav {
+  position: sticky; top: 0; z-index: 100;
+  background: var(--black); border-bottom: 1px solid var(--mid-gray);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 13px 36px;
+}
+.brand { display: flex; align-items: center; gap: 18px; }
+.brand-mark { font-family: 'Fira Code', monospace; font-weight: 700; font-size: 15px; }
+.brand-mark .brace, .brand-mark .d { color: #fff; }
+.brand-mark .us { color: var(--green); }
+.brand-sep { color: var(--mid-gray); font-size: 20px; font-weight: 300; }
+.brand-sub { font-family: 'Fira Code', monospace; font-size: 11px; color: var(--gray); letter-spacing: 0.1em; text-transform: uppercase; }
+.nav-right { display: flex; align-items: center; gap: 16px; }
+.nav-tabs { display: flex; gap: 2px; }
+.nav-tab {
+  padding: 7px 20px; font-family: 'Fira Code', monospace; font-size: 11px;
+  letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer;
+  border: 1px solid transparent; color: var(--gray);
+  background: none; transition: all 0.15s;
+}
+.nav-tab:hover { color: #fff; border-color: var(--mid-gray); }
+.nav-tab.active { color: var(--green); border: 1px solid var(--mid-gray); background: var(--dark-gray); }
+.db-status { font-family: 'Fira Code', monospace; font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; display: flex; align-items: center; gap: 6px; color: var(--gray); }
+.db-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--mid-gray); flex-shrink: 0; transition: background 0.3s; }
+.db-dot.online { background: var(--green); box-shadow: 0 0 5px var(--green); }
+.db-dot.error { background: var(--danger); }
+
+.view { display: none; padding: 52px 36px; max-width: 880px; margin: 0 auto; }
+.view.active { display: block; }
+
+.eyebrow { font-family: 'Fira Code', monospace; font-size: 11px; text-transform: uppercase; letter-spacing: 0.14em; color: var(--green); margin-bottom: 10px; }
+h1 { font-family: 'Fira Code', monospace; font-size: 30px; font-weight: 700; line-height: 1.1; margin-bottom: 6px; }
+h2 { font-family: 'Fira Code', monospace; font-size: 13px; font-weight: 700; margin-bottom: 18px; color: var(--green); letter-spacing: 0.1em; text-transform: uppercase; }
+p { color: #bbb; margin-bottom: 12px; font-size: 14px; }
+.subtitle-text { font-family: 'Inter', sans-serif; color: var(--gray); font-size: 13px; margin-top: 4px; }
+.marker { color: var(--green); font-family: 'Fira Code', monospace; font-weight: 700; }
+.highlight { background: var(--green); color: var(--black); padding: 1px 8px; font-family: 'Fira Code', monospace; font-weight: 700; }
+
+.section { border: 1px solid var(--mid-gray); padding: 28px 30px; margin-bottom: 20px; }
+hr.rule { border: none; border-top: 1px solid var(--mid-gray); margin: 24px 0; }
+
+.constraint { display: flex; gap: 20px; margin-bottom: 13px; align-items: flex-start; }
+.clabel { font-family: 'Fira Code', monospace; font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--green); min-width: 110px; padding-top: 1px; flex-shrink: 0; }
+.cval { font-size: 13px; color: #ccc; }
+
+.ci { display: flex; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--mid-gray); font-size: 13px; }
+.ci:last-child { border-bottom: none; }
+.ci-m { color: var(--green); font-family: 'Fira Code', monospace; font-weight: 700; flex-shrink: 0; }
+.ci-t { color: #ccc; }
+
+.rubric-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.rubric-table th { border: 1px solid var(--mid-gray); padding: 10px 14px; text-align: left; background: var(--dark-gray); font-family: 'Fira Code', monospace; font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--green); }
+.rubric-table td { border: 1px solid var(--mid-gray); padding: 10px 14px; vertical-align: top; color: #bbb; line-height: 1.5; }
+.rubric-table tr:hover td { background: #080808; }
+.rubric-table .tr-total td { background: var(--dark-gray); font-weight: 700; color: #fff; }
+.pts { font-family: 'Fira Code', monospace; font-weight: 700; color: var(--green); white-space: nowrap; }
+
+.form-group { margin-bottom: 22px; }
+.form-label { display: block; font-family: 'Fira Code', monospace; font-size: 10px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--green); margin-bottom: 8px; }
+.form-hint { font-size: 11px; color: var(--gray); margin-top: 5px; }
+input[type="text"], textarea, select {
+  width: 100%; background: var(--dark-gray); border: 1px solid var(--mid-gray);
+  color: #fff; font-family: 'Fira Code', monospace; font-size: 13px;
+  padding: 10px 14px; outline: none; transition: border-color 0.15s; resize: vertical;
+  -webkit-appearance: none; border-radius: 0;
+}
+input[type="text"]:focus, textarea:focus, select:focus { border-color: var(--green); }
+input::placeholder, textarea::placeholder { color: #333; }
+select option { background: #111; color: #fff; }
+.char-count { font-family: 'Fira Code', monospace; font-size: 11px; color: #333; text-align: right; margin-top: 4px; }
+.char-count.warn { color: var(--danger); }
+
+.team-selector { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
+.team-btn {
+  padding: 7px 20px; border: 1px solid var(--mid-gray); background: none;
+  color: var(--gray); font-family: 'Fira Code', monospace; font-size: 11px;
+  cursor: pointer; letter-spacing: 0.08em; text-transform: uppercase; transition: all 0.15s;
+}
+.team-btn:hover { border-color: #fff; color: #fff; }
+.team-btn.selected { border-color: var(--green); color: var(--green); background: rgba(0,255,0,0.04); }
+
+.btn-primary {
+  background: var(--green); color: var(--black); border: none;
+  font-family: 'Fira Code', monospace; font-weight: 700; font-size: 12px;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  padding: 12px 32px; cursor: pointer; transition: background 0.15s;
+  display: inline-flex; align-items: center; gap: 8px;
+}
+.btn-primary:hover { background: var(--green-dim); }
+.btn-primary:disabled { opacity: 0.25; cursor: not-allowed; }
+.btn-secondary {
+  background: none; color: #fff; border: 1px solid var(--mid-gray);
+  font-family: 'Fira Code', monospace; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase;
+  padding: 9px 20px; cursor: pointer; transition: border-color 0.15s;
+}
+.btn-secondary:hover { border-color: #fff; }
+.btn-sm {
+  background: none; color: var(--green); border: 1px solid var(--mid-gray);
+  font-family: 'Fira Code', monospace; font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase;
+  padding: 6px 14px; cursor: pointer; transition: border-color 0.15s;
+}
+.btn-sm:hover { border-color: var(--green); }
+
+.sub-card { border: 1px solid var(--mid-gray); padding: 26px 28px; margin-bottom: 18px; }
+.sc-meta { display: flex; align-items: center; gap: 14px; margin-bottom: 16px; flex-wrap: wrap; }
+.team-badge { font-family: 'Fira Code', monospace; font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; padding: 4px 14px; background: rgba(0,255,0,0.07); border: 1px solid var(--green); color: var(--green); }
+.sc-appname { font-family: 'Fira Code', monospace; font-size: 16px; font-weight: 700; }
+.sc-ts { font-family: 'Fira Code', monospace; font-size: 10px; color: var(--gray); margin-left: auto; }
+.sc-field { margin-bottom: 12px; }
+.sc-flabel { font-family: 'Fira Code', monospace; font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--gray); margin-bottom: 4px; }
+.sc-fval { font-size: 13px; color: #ccc; line-height: 1.55; }
+.sc-grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 12px; }
+
+.judge-block { border-top: 1px solid var(--mid-gray); margin-top: 18px; padding-top: 18px; }
+.judge-title { font-family: 'Fira Code', monospace; font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 700; margin-bottom: 12px; display: flex; align-items: center; gap: 10px; }
+.judge-title.human { color: #6eb0ff; }
+.judge-title.llm { color: var(--green); }
+.j-badge { font-size: 9px; padding: 2px 8px; border: 1px solid; opacity: 0.6; font-weight: 400; }
+
+.score-grid { display: grid; grid-template-columns: repeat(5, 1fr) 72px; gap: 8px; align-items: end; }
+.sf { display: flex; flex-direction: column; gap: 5px; }
+.sf-label { font-family: 'Fira Code', monospace; font-size: 9px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--gray); line-height: 1.35; min-height: 26px; }
+.sf input[type="number"] {
+  width: 100%; background: var(--dark-gray); border: 1px solid var(--mid-gray);
+  color: #fff; font-family: 'Fira Code', monospace; font-size: 16px; font-weight: 700;
+  padding: 8px 4px; text-align: center; outline: none; transition: border-color 0.15s;
+  -moz-appearance: textfield; border-radius: 0;
+}
+.sf input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; }
+.sf input[type="number"]:focus { border-color: #6eb0ff; }
+.stotal { text-align: center; padding: 8px 4px; border: 1px solid var(--green); background: rgba(0,255,0,0.04); }
+.stotal .stlabel { font-size: 9px; font-family: 'Fira Code', monospace; text-transform: uppercase; letter-spacing: 0.06em; color: var(--green); margin-bottom: 3px; }
+.stotal .stval { font-size: 20px; font-weight: 700; font-family: 'Fira Code', monospace; color: var(--green); }
+
+.llm-box { background: #040c00; border: 1px solid #1a3800; padding: 14px 16px; margin: 10px 0; min-height: 52px; }
+.llm-thinking { font-size: 12px; color: #3a6a00; font-style: italic; font-family: 'Fira Code', monospace; }
+.llm-text { font-size: 12px; color: #99c040; font-family: 'Fira Code', monospace; line-height: 1.6; }
+
+.llm-score-grid { display: grid; grid-template-columns: repeat(5, 1fr) 72px; gap: 8px; margin: 10px 0; }
+.lsbox { border: 1px solid #1a3800; padding: 8px 4px; text-align: center; }
+.lsbox .lslabel { font-size: 9px; font-family: 'Fira Code', monospace; text-transform: uppercase; letter-spacing: 0.05em; color: #3a6a00; line-height: 1.35; min-height: 26px; display: flex; align-items: center; justify-content: center; }
+.lsbox .lsval { font-size: 18px; font-weight: 700; font-family: 'Fira Code', monospace; color: var(--green); }
+
+.final-row { display: flex; align-items: center; justify-content: space-between; padding: 14px 0 2px; border-top: 1px solid var(--mid-gray); margin-top: 14px; gap: 12px; flex-wrap: wrap; }
+.final-scores { display: flex; gap: 24px; align-items: baseline; }
+.fsi { text-align: center; }
+.fsi .fsi-label { font-size: 10px; font-family: 'Fira Code', monospace; text-transform: uppercase; letter-spacing: 0.08em; color: var(--gray); }
+.fsi .fsi-val { font-size: 26px; font-weight: 700; font-family: 'Fira Code', monospace; }
+.fsi .fsi-val.h { color: #6eb0ff; }
+.fsi .fsi-val.l { color: var(--green); }
+.fsi .fsi-val.a { color: #fff; }
+
+.board-header, .board-row { display: grid; grid-template-columns: 44px 1fr 80px 80px 80px; gap: 8px; align-items: center; padding: 0 16px; }
+.board-header { margin-bottom: 6px; }
+.board-header span { font-family: 'Fira Code', monospace; font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--gray); text-align: center; }
+.board-header span:nth-child(2) { text-align: left; }
+.board-row { border: 1px solid var(--mid-gray); padding: 14px 16px; margin-bottom: 4px; transition: background 0.12s; }
+.board-row:hover { background: var(--dark-gray); }
+.board-row.rank-1 { border-color: var(--green); background: rgba(0,255,0,0.025); }
+.board-rank { font-family: 'Fira Code', monospace; font-size: 18px; font-weight: 700; color: #2a2a2a; text-align: center; }
+.board-rank.gold { color: var(--green); }
+.board-team { font-family: 'Fira Code', monospace; font-size: 13px; font-weight: 700; }
+.board-app { font-size: 12px; color: var(--gray); }
+.bcol { text-align: center; }
+.bcol .bv { display: block; font-family: 'Fira Code', monospace; font-size: 20px; font-weight: 700; }
+.bcol .bl { font-size: 10px; font-family: 'Fira Code', monospace; text-transform: uppercase; letter-spacing: 0.06em; color: var(--gray); }
+.bcol.hc .bv { color: #6eb0ff; }
+.bcol.lc .bv { color: var(--green); }
+.bcol.ac .bv { color: #fff; }
+
+.timer-wrap { display: flex; align-items: center; gap: 16px; margin: 20px 0; }
+.timer-display { font-family: 'Fira Code', monospace; font-size: 40px; font-weight: 700; color: var(--green); letter-spacing: 0.04em; font-variant-numeric: tabular-nums; }
+.timer-display.warn { color: var(--danger); }
+.timer-btn { background: none; border: 1px solid var(--mid-gray); color: #fff; font-family: 'Fira Code', monospace; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; padding: 8px 16px; cursor: pointer; transition: all 0.15s; }
+.timer-btn:hover { border-color: var(--green); color: var(--green); }
+.timer-btn.red:hover { border-color: var(--danger); color: var(--danger); }
+
+.toast { position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%) translateY(16px); background: var(--green); color: var(--black); font-family: 'Fira Code', monospace; font-size: 12px; font-weight: 700; letter-spacing: 0.08em; padding: 11px 28px; opacity: 0; transition: all 0.25s; pointer-events: none; z-index: 9999; text-transform: uppercase; }
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+.empty { text-align: center; padding: 60px 20px; }
+.empty .em { font-family: 'Fira Code', monospace; font-size: 32px; color: var(--mid-gray); margin-bottom: 12px; }
+.empty p { font-size: 13px; color: var(--gray); }
+
+.dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; background: var(--green); box-shadow: 0 0 5px var(--green); margin-right: 8px; vertical-align: middle; }
+
+.spinner { display: inline-block; width: 10px; height: 10px; border: 2px solid var(--mid-gray); border-top-color: var(--green); border-radius: 50%; animation: spin 0.7s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="brand">
+    <span class="brand-mark"><span class="brace">{</span><span class="d">d</span><span class="us">_</span></span>
+    <span class="brand-sep">/</span>
+    <span class="brand-sub">AI App Challenge — Disney Italy</span>
+  </div>
+  <div class="nav-right">
+    <div class="db-status">
+      <span class="db-dot" id="dbDot"></span>
+      <span id="dbLabel">connessione…</span>
+    </div>
+    <div class="nav-tabs">
+      <button class="nav-tab active"  onclick="showView('brief',this)">_ Brief</button>
+      <button class="nav-tab"         onclick="showView('rubric',this)">&gt; Rubrica</button>
+      <button class="nav-tab"         onclick="showView('submit',this)">+ Invia</button>
+      <button class="nav-tab"         onclick="showView('judge',this)">⊕ Giudica</button>
+      <button class="nav-tab"         onclick="showView('board',this)">↑ Classifica</button>
+    </div>
+  </div>
+</nav>
+
+<!-- ══════════════════════ BRIEF ══════════════════════ -->
+<div id="view-brief" class="view active">
+  <div style="margin-bottom:40px;">
+    <div class="eyebrow"><span class="dot"></span>Workshop in corso</div>
+    <h1><span class="marker">_</span>Costruite un'app con l'AI.<br>In 45 minuti.</h1>
+    <p class="subtitle-text">The Walt Disney Company Italy &nbsp;·&nbsp; deepers.ai</p>
+    <div class="timer-wrap">
+      <span class="timer-display" id="timerDisplay">45:00</span>
+      <button class="timer-btn" id="timerBtn" onclick="timerToggle()">Avvia</button>
+      <button class="timer-btn red" onclick="timerReset()">Reset</button>
+    </div>
+  </div>
+  <hr class="rule">
+  <div style="margin-top:28px;">
+    <div class="section">
+      <div style="margin-bottom:18px;"><div class="eyebrow">01 / Contesto</div><h2>La Sfida</h2></div>
+      <div class="constraint"><span class="clabel">Azienda</span><span class="cval">The Walt Disney Company Italy — operativa su streaming (Disney+), contenuti, parchi tematici, licensing e prodotti di consumo.</span></div>
+      <div class="constraint"><span class="clabel">Compito</span><span class="cval">Progettate un'app potenziata dall'AI che risolva un problema reale per Disney Italy. Dopo le presentazioni, il brief vincitore verrà <span class="highlight">vibecoded in diretta</span> e consegnato entro un'ora.</span></div>
+      <div class="constraint"><span class="clabel">Tempo</span><span class="cval">45 minuti per ideare e completare il brief. Il prototipo live segue immediatamente.</span></div>
+      <div class="constraint"><span class="clabel">Team</span><span class="cval">2–4 team · 4–8 persone ciascuno · un solo brief per team.</span></div>
+    </div>
+    <div class="section">
+      <div style="margin-bottom:18px;"><div class="eyebrow">02 / Requisiti del Brief</div><h2>Cosa Deve Contenere il Vostro Brief</h2></div>
+      <div class="ci"><span class="ci-m">&gt;</span><span class="ci-t"><strong>Nome dell'App</strong> — Un nome chiaro e memorabile.</span></div>
+      <div class="ci"><span class="ci-m">&gt;</span><span class="ci-t"><strong>Descrizione del Problema</strong> — Quale pain point specifico affrontate? Chi ce l'ha, con quale frequenza, a quale costo?</span></div>
+      <div class="ci"><span class="ci-m">&gt;</span><span class="ci-t"><strong>Soluzione Proposta</strong> — Cosa fa l'app? Perché l'AI è essenziale, non opzionale?</span></div>
+      <div class="ci"><span class="ci-m">&gt;</span><span class="ci-t"><strong>Funzionalità Chiave</strong> — Esattamente 3. Proporzionate a ciò che può essere prototipato in meno di 60 minuti.</span></div>
+      <div class="ci"><span class="ci-m">&gt;</span><span class="ci-t"><strong>Utente Principale</strong> — Dipendente interno o cliente esterno? Quale funzione o pubblico?</span></div>
+      <div class="ci"><span class="ci-m">&gt;</span><span class="ci-t"><strong>Valore di Business</strong> — Quale impatto misurabile crea? Tempo risparmiato, ricavi, engagement, riduzione dei costi?</span></div>
+    </div>
+    <div class="section">
+      <div style="margin-bottom:18px;"><div class="eyebrow">03 / Vincoli</div><h2>Le Regole del Gioco</h2></div>
+      <div class="constraint"><span class="clabel">Scope</span><span class="cval">Deve essere costruibile come <span class="highlight">interfaccia web</span> in meno di 60 minuti. Nessun backend reale, nessuna autenticazione, nessun database esterno.</span></div>
+      <div class="constraint"><span class="clabel">Layer AI</span><span class="cval">L'AI deve essere centrale, non cosmetica. L'app non dovrebbe funzionare altrettanto bene — o per niente — senza di essa.</span></div>
+      <div class="constraint"><span class="clabel">Disney Fit</span><span class="cval">Radicata nel business reale di Disney Italy: contenuti, streaming, parchi, licensing, B2B o B2C.</span></div>
+      <div class="constraint"><span class="clabel">Originalità</span><span class="cval">Identificate un gap genuino. Non proponete strumenti che esistono già.</span></div>
+    </div>
+    <div class="section">
+      <div style="margin-bottom:18px;"><div class="eyebrow">04 / Ispirazione</div><h2>Possibili Direzioni</h2></div>
+      <p style="font-size:13px; margin-bottom:14px;">Solo punti di partenza. Le idee originali ottengono punteggi più alti di quelle sicure.</p>
+      <div class="ci"><span class="ci-m">_</span><span class="ci-t">Un assistente AI per il team licensing per redigere e valutare proposte di partnership.</span></div>
+      <div class="ci"><span class="ci-m">_</span><span class="ci-t">Uno strumento di localizzazione che adatta il copy delle campagne Disney+ al contesto culturale italiano.</span></div>
+      <div class="ci"><span class="ci-m">_</span><span class="ci-t">Un chatbot Q&amp;A con i personaggi Disney per l'engagement nei parchi tematici.</span></div>
+      <div class="ci"><span class="ci-m">_</span><span class="ci-t">Uno strumento di knowledge management interno per l'onboarding nelle diverse business unit.</span></div>
+      <div class="ci"><span class="ci-m">_</span><span class="ci-t">Una dashboard di media monitoring che usa l'AI per rilevare copertura stampa e sentiment.</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════ RUBRICA ══════════════════════ -->
+<div id="view-rubric" class="view">
+  <div style="margin-bottom:36px;">
+    <div class="eyebrow">Framework di Valutazione</div>
+    <h1><span class="marker">&gt;</span>Rubrica di Punteggio</h1>
+    <p class="subtitle-text">Due giudici: Bernardino Sassoli de' Bianchi + AI co-giudice &nbsp;·&nbsp; 100 punti totali</p>
+  </div>
+  <div class="section">
+    <h2>Criteri e Punteggio</h2>
+    <table class="rubric-table">
+      <thead>
+        <tr>
+          <th style="width:20%;">Criterio</th>
+          <th style="width:8%;" class="pts">Punti</th>
+          <th style="width:36%;">Cosa ottiene un punteggio alto</th>
+          <th style="width:36%;">Errori comuni</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Chiarezza del Problema</strong></td>
+          <td class="pts">/ 20</td>
+          <td>Il problema è specifico, reale e ben articolato. Sappiamo chi ce l'ha, con quale frequenza e perché è rilevante adesso.</td>
+          <td>Pain point vaghi ("i dipendenti perdono tempo"), problemi inesistenti, soluzioni in cerca di un problema.</td>
+        </tr>
+        <tr>
+          <td><strong>Necessità dell'AI</strong></td>
+          <td class="pts">/ 20</td>
+          <td>Il layer AI è essenziale, non decorativo. Rimuoverlo degraderebbe significativamente il valore dell'app.</td>
+          <td>Un form con skin da chatbot. Una barra di ricerca rinominata AI. Feature che potrebbe fare Excel.</td>
+        </tr>
+        <tr>
+          <td><strong>Impatto di Business</strong></td>
+          <td class="pts">/ 20</td>
+          <td>Il valore creato è misurabile e significativo per Disney Italy. Il caso ROI è credibile e specifico.</td>
+          <td>Claim generici, nessun collegamento al business reale di Disney, impatto marginale.</td>
+        </tr>
+        <tr>
+          <td><strong>Fattibilità</strong></td>
+          <td class="pts">/ 20</td>
+          <td>Lo scope del prototipo è realistico per una build live di 60 minuti. I flussi principali sono chiari e raggiungibili.</td>
+          <td>Richiede integrazioni o dati reali. Troppe feature. MVP non chiaro.</td>
+        </tr>
+        <tr>
+          <td><strong>Originalità</strong></td>
+          <td class="pts">/ 20</td>
+          <td>Fresca, non ovvia, dimostra vera comprensione del contesto Disney. Memorabile.</td>
+          <td>Un wrapper di ChatGPT con logo Disney. Un problema che ogni azienda ha già risolto anni fa.</td>
+        </tr>
+        <tr class="tr-total">
+          <td><strong>Totale</strong></td>
+          <td class="pts">/ 100</td>
+          <td colspan="2">Punteggio finale = media dei totali del giudice umano e dell'AI co-giudice.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="section">
+    <h2>Fasce di Punteggio</h2>
+    <div class="ci"><span class="ci-m" style="min-width:44px;font-size:13px;">85+</span><span class="ci-t"><strong>Eccezionale.</strong> Potrebbe essere presentato come prodotto interno reale. Sopravvivrebbe a un board meeting.</span></div>
+    <div class="ci"><span class="ci-m" style="min-width:44px;font-size:13px;">70–84</span><span class="ci-t"><strong>Solido.</strong> Valore chiaro, scope ben definito, per lo più originale. Richiede perfezionamento ma il nucleo regge.</span></div>
+    <div class="ci"><span class="ci-m" style="min-width:44px;font-size:13px;">55–69</span><span class="ci-t"><strong>In sviluppo.</strong> Ha potenziale ma lacune significative nella giustificazione dell'AI, nello scope o nella rilevanza di business.</span></div>
+    <div class="ci"><span class="ci-m" style="min-width:44px;font-size:13px;">&lt; 55</span><span class="ci-t"><strong>Da ripensare.</strong> Problemi fondamentali nella definizione del problema, nell'uso dell'AI o nella fattibilità.</span></div>
+  </div>
+  <div class="section">
+    <h2>Processo di Valutazione</h2>
+    <div class="constraint"><span class="clabel">Fase 1</span><span class="cval">Ogni team presenta il proprio brief (3 minuti). Nessuna slide richiesta.</span></div>
+    <div class="constraint"><span class="clabel">Fase 2</span><span class="cval">Il giudice umano assegna un punteggio per ogni criterio (0–20) nel tab Giudica.</span></div>
+    <div class="constraint"><span class="clabel">Fase 3</span><span class="cval">L'AI co-giudice legge il brief e produce i propri punteggi con motivazione scritta in italiano.</span></div>
+    <div class="constraint"><span class="clabel">Fase 4</span><span class="cval">Punteggio finale = media dei totali umano + AI. Il brief vincitore viene prototipato in diretta immediatamente.</span></div>
+  </div>
+</div>
+
+<!-- ══════════════════════ INVIA ══════════════════════ -->
+<div id="view-submit" class="view">
+  <div style="margin-bottom:36px;">
+    <div class="eyebrow">Invio Brief del Team</div>
+    <h1><span class="marker">_</span>Invia il Vostro Brief</h1>
+    <p class="subtitle-text">Un invio per team &nbsp;·&nbsp; Tutti i campi sono obbligatori</p>
+  </div>
+  <div class="section">
+    <div class="form-group">
+      <label class="form-label">Nome del Team</label>
+      <div class="team-selector">
+        <button class="team-btn" onclick="selectTeam(this,'Team Alpha')">Team Alpha</button>
+        <button class="team-btn" onclick="selectTeam(this,'Team Beta')">Team Beta</button>
+        <button class="team-btn" onclick="selectTeam(this,'Team Gamma')">Team Gamma</button>
+        <button class="team-btn" onclick="selectTeam(this,'Team Delta')">Team Delta</button>
+      </div>
+      <input type="text" id="f_team" placeholder="oppure digita un nome personalizzato…" oninput="syncTeam(this)">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Nome dell'App</label>
+      <input type="text" id="f_appname" placeholder="Dai un nome alla tua app…" maxlength="60" oninput="cc(this,'cc_appname',60)">
+      <div class="char-count" id="cc_appname">0 / 60</div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Utente Principale</label>
+      <select id="f_user">
+        <option value="" disabled selected>Seleziona l'utente target…</option>
+        <option>Interno — Content &amp; Produzione</option>
+        <option>Interno — Marketing &amp; Licensing</option>
+        <option>Interno — HR &amp; Onboarding</option>
+        <option>Interno — Legal &amp; Compliance</option>
+        <option>Interno — Executive / Strategy</option>
+        <option>Esterno — Abbonati Disney+</option>
+        <option>Esterno — Visitatori parchi tematici</option>
+        <option>Esterno — Partner B2B &amp; licenziatari</option>
+        <option>Esterno — Stampa &amp; Media</option>
+        <option>Altro (descrivere nella sezione problema)</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Descrizione del Problema</label>
+      <textarea id="f_problem" rows="4" maxlength="500" placeholder="Quale problema specifico risolve? Chi ce l'ha, con quale frequenza e a quale costo?" oninput="cc(this,'cc_problem',500)"></textarea>
+      <div class="char-count" id="cc_problem">0 / 500</div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Soluzione Proposta</label>
+      <textarea id="f_solution" rows="4" maxlength="500" placeholder="Cosa fa l'app? Perché l'AI è essenziale — non solo utile?" oninput="cc(this,'cc_solution',500)"></textarea>
+      <div class="char-count" id="cc_solution">0 / 500</div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">3 Funzionalità Chiave (una per riga)</label>
+      <textarea id="f_features" rows="4" maxlength="400" placeholder="Funzionalità 1&#10;Funzionalità 2&#10;Funzionalità 3" oninput="cc(this,'cc_features',400)"></textarea>
+      <div class="char-count" id="cc_features">0 / 400</div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Valore di Business</label>
+      <textarea id="f_value" rows="3" maxlength="300" placeholder="Quale impatto misurabile crea? Tempo risparmiato, ricavi, engagement, riduzione costi…" oninput="cc(this,'cc_value',300)"></textarea>
+      <div class="char-count" id="cc_value">0 / 300</div>
+    </div>
+    <div style="display:flex; align-items:center; gap:16px; margin-top:6px;">
+      <button class="btn-primary" id="submitBtn" onclick="submitBrief()">_ Invia Brief</button>
+      <span id="submitStatus" style="font-family:'Fira Code',monospace; font-size:11px; color:var(--gray);"></span>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════ GIUDICA ══════════════════════ -->
+<div id="view-judge" class="view">
+  <div style="margin-bottom:36px;">
+    <div class="eyebrow">Pannello di Valutazione</div>
+    <h1><span class="marker">&gt;</span>Giudica i Brief</h1>
+    <p class="subtitle-text">Assegna 0–20 per criterio · Poi attiva l'AI co-giudice</p>
+  </div>
+  <div id="judgeContent">
+    <div class="empty"><div class="em">{ }</div><p>Nessun brief ancora. I team inviano nel tab Invia.</p></div>
+  </div>
+</div>
+
+<!-- ══════════════════════ CLASSIFICA ══════════════════════ -->
+<div id="view-board" class="view">
+  <div style="margin-bottom:36px;">
+    <div class="eyebrow">Risultati in Diretta</div>
+    <h1><span class="marker">↑</span>Classifica</h1>
+    <p class="subtitle-text">Ordinata per media dei punteggi umano + AI · si aggiorna in tempo reale</p>
+  </div>
+  <div id="boardContent">
+    <div class="empty"><div class="em">—</div><p>I punteggi appariranno una volta iniziata la valutazione.</p></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- Firebase SDK -->
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getDatabase, ref, set, onValue, update } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
+
+/* ═══════ FIREBASE INIT ═══════ */
+const firebaseConfig = {
+  apiKey: "AIzaSyDeyE6S8kOEmb_2_tJ8KZPbE2c7nffNVjA",
+  authDomain: "disney-worskhop.firebaseapp.com",
+  projectId: "disney-worskhop",
+  storageBucket: "disney-worskhop.firebasestorage.app",
+  messagingSenderId: "384125703419",
+  appId: "1:384125703419:web:926922b5ab2edb9f484c5e",
+  databaseURL: "https://disney-worskhop-default-rtdb.europe-west1.firebasedatabase.app"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+/* ═══════ DB STATUS ═══════ */
+const connRef = ref(db, '.info/connected');
+onValue(connRef, snap => {
+  const online = snap.val() === true;
+  document.getElementById('dbDot').className = 'db-dot ' + (online ? 'online' : 'error');
+  document.getElementById('dbLabel').textContent = online ? 'firebase online' : 'offline';
+});
+
+/* ═══════ LOCAL SCORES STATE ═══════ */
+// scores are kept local to the judge's device only
+const localScores = {};
+
+/* ═══════ LIVE DATA ═══════ */
+// subs: { teamKey: { team, appname, user, problem, solution, features, value, ts } }
+let liveSubs = {};
+
+onValue(ref(db, 'submissions'), snap => {
+  liveSubs = snap.val() || {};
+  renderJudge();
+  renderBoard();
+});
+
+onValue(ref(db, 'scores'), snap => {
+  const remoteScores = snap.val() || {};
+  // merge remote llm scores into localScores
+  Object.keys(remoteScores).forEach(k => {
+    if (!localScores[k]) localScores[k] = { human: {} };
+    if (remoteScores[k].llm) localScores[k].llm = remoteScores[k].llm;
+    if (remoteScores[k].llmReason) localScores[k].llmReason = remoteScores[k].llmReason;
+  });
+  renderJudge();
+  renderBoard();
+});
+
+/* ═══════ CRITERIA ═══════ */
+const CRIT = [
+  { k:'p', l:'Chiarezza\nProblema'  },
+  { k:'a', l:'Necessità\nAI'        },
+  { k:'b', l:'Impatto\nBusiness'    },
+  { k:'f', l:'Fatti-\nbilità'       },
+  { k:'o', l:'Origina-\nlità'       },
+];
+
+/* ═══════ NAV ═══════ */
+window.showView = function(name, btn) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('view-' + name).classList.add('active');
+  if (btn) btn.classList.add('active');
+};
+
+/* ═══════ TIMER ═══════ */
+let tSecs = 45*60, tInt = null, tRunning = false;
+window.timerToggle = function() {
+  if (tRunning) {
+    clearInterval(tInt); tRunning = false;
+    document.getElementById('timerBtn').textContent = 'Riprendi';
+  } else {
+    tInt = setInterval(() => {
+      tSecs--;
+      const m = String(Math.floor(tSecs/60)).padStart(2,'0');
+      const s = String(tSecs%60).padStart(2,'0');
+      const el = document.getElementById('timerDisplay');
+      el.textContent = `${m}:${s}`;
+      if (tSecs <= 300) el.classList.add('warn'); else el.classList.remove('warn');
+      if (tSecs <= 0) { clearInterval(tInt); tRunning = false; document.getElementById('timerBtn').textContent = 'Avvia'; }
+    }, 1000);
+    tRunning = true;
+    document.getElementById('timerBtn').textContent = 'Pausa';
+  }
+};
+window.timerReset = function() {
+  clearInterval(tInt); tRunning = false; tSecs = 45*60;
+  document.getElementById('timerDisplay').textContent = '45:00';
+  document.getElementById('timerDisplay').classList.remove('warn');
+  document.getElementById('timerBtn').textContent = 'Avvia';
+};
+
+/* ═══════ FORM HELPERS ═══════ */
+let selTeam = '';
+window.selectTeam = function(btn, name) {
+  document.querySelectorAll('.team-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  selTeam = name;
+  document.getElementById('f_team').value = name;
+};
+window.syncTeam = function(el) {
+  selTeam = el.value;
+  document.querySelectorAll('.team-btn').forEach(b => b.classList.remove('selected'));
+};
+window.cc = function(el, id, max) {
+  const n = el.value.length;
+  const c = document.getElementById(id);
+  c.textContent = `${n} / ${max}`;
+  c.classList.toggle('warn', n > max * 0.9);
+};
+function gv(id) { return document.getElementById(id).value.trim(); }
+function teamKey(name) { return name.toLowerCase().replace(/\s+/g,'_').replace(/[^a-z0-9_]/g,''); }
+
+/* ═══════ SUBMIT → FIREBASE ═══════ */
+window.submitBrief = async function() {
+  const team = gv('f_team'), appname = gv('f_appname'), user = gv('f_user');
+  const problem = gv('f_problem'), solution = gv('f_solution');
+  const features = gv('f_features'), value = gv('f_value');
+  if (!team||!appname||!user||!problem||!solution||!features||!value) { toast('> tutti i campi sono obbligatori'); return; }
+
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> invio…';
+
+  const ts = new Date().toLocaleTimeString('it-IT', {hour:'2-digit',minute:'2-digit'});
+  const key = teamKey(team);
+  const entry = { team, appname, user, problem, solution, features, value, ts };
+
+  try {
+    await set(ref(db, 'submissions/' + key), entry);
+    toast('> brief inviato: ' + team);
+    document.getElementById('submitStatus').textContent = `_ inviato alle ${ts}`;
+  } catch(e) {
+    toast('> errore invio — riprova');
+    console.error(e);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '_ Invia Brief';
+  }
+};
+
+/* ═══════ JUDGE RENDER ═══════ */
+function totH(key) {
+  const h = (localScores[key]||{}).human||{};
+  return CRIT.reduce((s,c) => s + (parseInt(h[c.k])||0), 0);
+}
+function totL(key) {
+  const l = (localScores[key]||{}).llm||{};
+  return CRIT.reduce((s,c) => s + (parseInt(l[c.k])||0), 0);
+}
+
+function renderJudge() {
+  const el = document.getElementById('judgeContent');
+  const subs = Object.entries(liveSubs);
+  if (!subs.length) { el.innerHTML = '<div class="empty"><div class="em">{ }</div><p>Nessun brief ancora. I team inviano nel tab Invia.</p></div>'; return; }
+
+  el.innerHTML = subs.map(([key, sub]) => {
+    const sc = localScores[key]||{};
+    const h = sc.human||{};
+    const ht = totH(key);
+    const lt = totL(key);
+    const hasLLM = !!sc.llm;
+    const avg = hasLLM ? Math.round((ht+lt)/2) : '—';
+
+    const humanInputs = CRIT.map(c => `
+      <div class="sf">
+        <div class="sf-label">${c.l}</div>
+        <input type="number" min="0" max="20" value="${h[c.k]||''}" placeholder="—"
+          oninput="saveH('${key}','${c.k}',this.value)">
+      </div>`).join('');
+
+    const llmPart = sc.llmLoading
+      ? `<div class="llm-box"><span class="llm-thinking">> lettura del brief in corso…</span></div>`
+      : hasLLM
+        ? `<div class="llm-box"><div class="llm-text">${escHtml(sc.llmReason||'')}</div></div>
+           <div class="llm-score-grid">
+             ${CRIT.map(c=>`<div class="lsbox"><div class="lslabel">${c.l}</div><div class="lsval">${sc.llm[c.k]||'—'}</div></div>`).join('')}
+             <div class="lsbox" style="border-color:rgba(0,255,0,0.35)"><div class="lslabel">Totale</div><div class="lsval">${lt}</div></div>
+           </div>`
+        : `<button class="btn-sm" onclick="runLLM('${key}')">_ Avvia AI Giudice →</button>`;
+
+    return `
+<div class="sub-card">
+  <div class="sc-meta">
+    <span class="team-badge">${escHtml(sub.team)}</span>
+    <span class="sc-appname">${escHtml(sub.appname)}</span>
+    <span class="sc-ts">${sub.ts}</span>
+  </div>
+  <div class="sc-grid2">
+    <div class="sc-field"><div class="sc-flabel">Utente Principale</div><div class="sc-fval">${escHtml(sub.user)}</div></div>
+    <div class="sc-field"><div class="sc-flabel">Valore di Business</div><div class="sc-fval">${escHtml(sub.value)}</div></div>
+  </div>
+  <div class="sc-field"><div class="sc-flabel">Problema</div><div class="sc-fval">${escHtml(sub.problem)}</div></div>
+  <div class="sc-field"><div class="sc-flabel">Soluzione</div><div class="sc-fval">${escHtml(sub.solution)}</div></div>
+  <div class="sc-field"><div class="sc-flabel">Funzionalità Chiave</div><div class="sc-fval" style="white-space:pre-line;">${escHtml(sub.features)}</div></div>
+
+  <div class="judge-block">
+    <div class="judge-title human">_ Giudice Umano <span class="j-badge" style="border-color:#6eb0ff;color:#6eb0ff;">Bernardino</span></div>
+    <div class="score-grid">
+      ${humanInputs}
+      <div class="stotal"><div class="stlabel">Totale</div><div class="stval" id="ht-${key}">${ht||'—'}</div></div>
+    </div>
+  </div>
+
+  <div class="judge-block">
+    <div class="judge-title llm">> AI Co-Giudice <span class="j-badge" style="border-color:var(--green);color:var(--green);">claude</span></div>
+    ${llmPart}
+  </div>
+
+  <div class="final-row">
+    <div class="final-scores">
+      <div class="fsi"><div class="fsi-label">Umano</div><div class="fsi-val h">${ht||'—'}</div></div>
+      <div class="fsi"><div class="fsi-label">AI</div><div class="fsi-val l">${hasLLM ? lt : '—'}</div></div>
+      <div class="fsi"><div class="fsi-label">Media</div><div class="fsi-val a">${avg}</div></div>
+    </div>
+    <button class="btn-secondary" onclick="showView('board', document.querySelectorAll('.nav-tab')[4])">↑ Classifica</button>
+  </div>
+</div>`;
+  }).join('');
+}
+
+window.saveH = function(key, k, v) {
+  if (!localScores[key]) localScores[key] = { human: {} };
+  if (!localScores[key].human) localScores[key].human = {};
+  localScores[key].human[k] = Math.min(20, Math.max(0, parseInt(v)||0));
+  const total = CRIT.reduce((s,c) => s + (localScores[key].human[c.k]||0), 0);
+  const el = document.getElementById('ht-' + key);
+  if (el) el.textContent = total || '—';
+  renderBoard();
+};
+
+/* ═══════ LLM JUDGE ═══════ */
+window.runLLM = async function(key) {
+  const sub = liveSubs[key];
+  if (!sub) return;
+  if (!localScores[key]) localScores[key] = { human: {} };
+  localScores[key].llmLoading = true;
+  renderJudge();
+
+  const prompt = `Sei un giudice esperto e rigoroso a un workshop di innovazione AI presso The Walt Disney Company Italy.
+Un team ha presentato il concept di un'app AI. Valutalo secondo cinque criteri, ognuno con punteggio da 0 a 20. Sii preciso e critico.
+
+BRIEF:
+Team: ${sub.team}
+Nome App: ${sub.appname}
+Utente Principale: ${sub.user}
+Descrizione del Problema: ${sub.problem}
+Soluzione Proposta: ${sub.solution}
+Funzionalità Chiave:
+${sub.features}
+Valore di Business: ${sub.value}
+
+CRITERI (punteggio 0–20 ciascuno):
+p — Chiarezza del Problema: Il problema è specifico, reale e ben articolato? Sappiamo chi ce l'ha e perché è rilevante?
+a — Necessità dell'AI: L'AI è essenziale, non decorativa? Rimuoverla degraderebbe significativamente il valore?
+b — Impatto di Business: Il valore creato è misurabile e significativo per Disney Italy? Il caso ROI è credibile?
+f — Fattibilità: Può essere prototipato come interfaccia web in meno di 60 minuti di coding live?
+o — Originalità: L'idea è fresca, non ovvia e radicata nel contesto reale di Disney?
+
+Rispondi ONLY con un oggetto JSON valido — niente markdown, nessun testo fuori dal JSON:
+{"p":<int>,"a":<int>,"b":<int>,"f":<int>,"o":<int>,"reason":"<valutazione complessiva in 2-3 frasi in italiano>"}`;
+
+  try {
+    const res = await fetch('/api/judge', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+    const data = await res.json();
+    const raw = (data.content||[]).find(b => b.type==='text')?.text || '';
+    const clean = raw.replace(/```json|```/g,'').trim();
+    const parsed = JSON.parse(clean);
+    const llmScores = { p:parsed.p, a:parsed.a, b:parsed.b, f:parsed.f, o:parsed.o };
+    localScores[key].llm = llmScores;
+    localScores[key].llmReason = parsed.reason || '';
+    localScores[key].llmLoading = false;
+    // persist llm scores to firebase so classifica is shared
+    await update(ref(db, 'scores/' + key), { llm: llmScores, llmReason: parsed.reason || '' });
+    renderJudge();
+    renderBoard();
+    toast('> AI ha valutato: ' + sub.team);
+  } catch(e) {
+    localScores[key].llmLoading = false;
+    renderJudge();
+    toast('> errore AI — riprova');
+    console.error(e);
+  }
+};
+
+/* ═══════ SCOREBOARD ═══════ */
+function renderBoard() {
+  const el = document.getElementById('boardContent');
+  const subs = Object.entries(liveSubs);
+  if (!subs.length) { el.innerHTML = '<div class="empty"><div class="em">—</div><p>I punteggi appariranno una volta iniziata la valutazione.</p></div>'; return; }
+
+  const rows = subs.map(([key, sub]) => {
+    const sc = localScores[key]||{};
+    const ht = totH(key);
+    const lt = totL(key);
+    const hasLLM = !!sc.llm;
+    return { sub, ht, lt, hasLLM, avg: hasLLM ? (ht+lt)/2 : ht };
+  }).sort((a,b) => b.avg - a.avg);
+
+  el.innerHTML = `
+    <div class="board-header">
+      <span>#</span><span>Team / App</span>
+      <span style="color:#6eb0ff;">Umano</span>
+      <span style="color:var(--green);">AI</span>
+      <span>Media</span>
+    </div>` +
+    rows.map((r,i) => `
+    <div class="board-row ${i===0?'rank-1':''}">
+      <div class="board-rank ${i===0?'gold':''}">${i===0?'★':i+1}</div>
+      <div>
+        <div class="board-team">${escHtml(r.sub.team)}</div>
+        <div class="board-app">> ${escHtml(r.sub.appname)}</div>
+      </div>
+      <div class="bcol hc"><span class="bv">${r.ht||'—'}</span><span class="bl">/ 100</span></div>
+      <div class="bcol lc"><span class="bv">${r.hasLLM?r.lt:'—'}</span><span class="bl">/ 100</span></div>
+      <div class="bcol ac"><span class="bv">${r.hasLLM?Math.round(r.avg):r.ht||'—'}</span><span class="bl">/ 100</span></div>
+    </div>`).join('');
+}
+
+/* ═══════ UTILS ═══════ */
+let tId;
+window.toast = function(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(tId); tId = setTimeout(() => t.classList.remove('show'), 2800);
+};
+function escHtml(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+</script>
+</body>
+</html>
