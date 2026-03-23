@@ -161,8 +161,18 @@ select option { background: #111; color: #fff; }
 .stotal .stval { font-size: 20px; font-weight: 700; font-family: 'Fira Code', monospace; color: var(--green); }
 
 .llm-box { background: #040c00; border: 1px solid #1a3800; padding: 14px 16px; margin: 10px 0; min-height: 52px; }
+.llm-box.phase2 { border-color: #2a4a00; background: #061000; }
 .llm-thinking { font-size: 12px; color: #6db800; font-style: italic; font-family: 'Fira Code', monospace; }
 .llm-text { font-size: 12px; color: #99c040; font-family: 'Fira Code', monospace; line-height: 1.6; }
+.llm-analysis { margin: 10px 0; }
+.llm-criterion { padding: 8px 0; }
+.llm-crit-header { font-size: 11px; font-family: 'Fira Code', monospace; font-weight: 700; color: #6db800; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.llm-crit-score { font-size: 13px; color: var(--green); font-weight: 700; }
+.llm-crit-text { font-size: 12px; color: #99c040; font-family: 'Fira Code', monospace; line-height: 1.6; }
+.cmp-tag { font-size: 9px; padding: 1px 6px; border-radius: 3px; font-weight: 700; letter-spacing: 0.04em; }
+.cmp-tag.accord { background: rgba(0,180,0,0.15); color: #6db800; border: 1px solid rgba(0,180,0,0.3); }
+.cmp-tag.disaccord { background: rgba(255,160,0,0.12); color: #d4a020; border: 1px solid rgba(255,160,0,0.3); }
+.cmp-scores { font-size: 10px; color: var(--mid-gray); font-weight: 400; }
 
 .llm-score-grid { display: grid; grid-template-columns: repeat(5, 1fr) 72px; gap: 8px; margin: 10px 0; }
 .lsbox { border: 1px solid #1a3800; padding: 8px 4px; text-align: center; }
@@ -523,6 +533,8 @@ onValue(ref(db, 'scores'), snap => {
     if (remoteScores[k].human) localScores[k].human = remoteScores[k].human;
     if (remoteScores[k].llm) localScores[k].llm = remoteScores[k].llm;
     if (remoteScores[k].llmReason) localScores[k].llmReason = remoteScores[k].llmReason;
+    if (remoteScores[k].llmAnalysis) localScores[k].llmAnalysis = remoteScores[k].llmAnalysis;
+    if (remoteScores[k].llmComparison) localScores[k].llmComparison = remoteScores[k].llmComparison;
   });
   renderJudge();
   renderBoard();
@@ -699,17 +711,26 @@ window.saveH = function(key, k, v, inputEl) {
 };
 
 /* ═══════ LLM JUDGE ═══════ */
-window.runLLM = async function(key) {
-  const sub = liveSubs[key];
-  if (!sub) return;
-  if (!localScores[key]) localScores[key] = { human: {} };
-  localScores[key].llmLoading = true;
-  renderAdmin();
 
-  const prompt = `Sei un giudice esperto e rigoroso a un workshop di innovazione AI presso The Walt Disney Company Italy.
-Un team ha presentato il concept di un'app AI. Valutalo secondo cinque criteri, ognuno con punteggio da 0 a 20. Sii preciso e critico.
+async function callLLM(prompt) {
+  const res = await fetch('/api/judge', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 4000,
+      messages: [{ role: 'user', content: prompt }]
+    })
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || `API error ${res.status}`);
+  const raw = (data.content||[]).find(b => b.type==='text')?.text || '';
+  if (!raw) throw new Error('Empty response from AI');
+  return JSON.parse(raw.replace(/```json|```/g,'').trim());
+}
 
-BRIEF:
+function buildBriefBlock(sub) {
+  return `BRIEF:
 Team: ${sub.team}
 Nome App: ${sub.appname}
 Utente Principale: ${sub.user}
@@ -717,7 +738,21 @@ Descrizione del Problema: ${sub.problem}
 Soluzione Proposta: ${sub.solution}
 Funzionalità Chiave:
 ${sub.features}
-Valore di Business: ${sub.value}
+Valore di Business: ${sub.value}`;
+}
+
+/* — FASE 1: valutazione autonoma — */
+window.runLLM = async function(key) {
+  const sub = liveSubs[key];
+  if (!sub) return;
+  if (!localScores[key]) localScores[key] = { human: {} };
+  localScores[key].llmLoading = true;
+  renderAdmin();
+
+  const prompt = `Sei un giudice esperto, rigoroso e articolato a un workshop di innovazione AI presso The Walt Disney Company Italy.
+Un team ha presentato il concept di un'app AI. Devi valutarlo in profondità secondo cinque criteri, ognuno con punteggio da 0 a 20.
+
+${buildBriefBlock(sub)}
 
 CRITERI (punteggio 0–20 ciascuno):
 p — Chiarezza del Problema: Il problema è specifico, reale e ben articolato? Sappiamo chi ce l'ha e perché è rilevante?
@@ -726,38 +761,103 @@ b — Impatto di Business: Il valore creato è misurabile e significativo per Di
 f — Fattibilità: Può essere prototipato come interfaccia web in meno di 60 minuti di coding live?
 o — Originalità: L'idea è fresca, non ovvia e radicata nel contesto reale di Disney?
 
-Rispondi ONLY con un oggetto JSON valido — niente markdown, nessun testo fuori dal JSON:
-{"p":<int>,"a":<int>,"b":<int>,"f":<int>,"o":<int>,"reason":"<valutazione complessiva in 2-3 frasi in italiano>"}`;
+ISTRUZIONI:
+- Per OGNI criterio scrivi un'analisi di 2-4 frasi che giustifichi il punteggio assegnato. Sii specifico: cita elementi del brief.
+- Concludi con una valutazione complessiva di 3-5 frasi che sintetizzi punti di forza e debolezze principali.
+- Sii onesto e critico: non gonfiare i punteggi per gentilezza.
+
+Rispondi ESCLUSIVAMENTE con un oggetto JSON valido — niente markdown, nessun testo fuori dal JSON:
+{
+  "p": <int>, "p_analysis": "<analisi criterio p>",
+  "a": <int>, "a_analysis": "<analisi criterio a>",
+  "b": <int>, "b_analysis": "<analisi criterio b>",
+  "f": <int>, "f_analysis": "<analisi criterio f>",
+  "o": <int>, "o_analysis": "<analisi criterio o>",
+  "reason": "<valutazione complessiva>"
+}`;
 
   try {
-    const res = await fetch('/api/judge', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 1000,
-        messages: [{ role: 'user', content: prompt }]
-      })
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || `API error ${res.status}`);
-    const raw = (data.content||[]).find(b => b.type==='text')?.text || '';
-    if (!raw) throw new Error('Empty response from AI');
-    const clean = raw.replace(/```json|```/g,'').trim();
-    const parsed = JSON.parse(clean);
+    const parsed = await callLLM(prompt);
     const llmScores = { p:parsed.p, a:parsed.a, b:parsed.b, f:parsed.f, o:parsed.o };
+    const llmAnalysis = { p:parsed.p_analysis, a:parsed.a_analysis, b:parsed.b_analysis, f:parsed.f_analysis, o:parsed.o_analysis };
     localScores[key].llm = llmScores;
     localScores[key].llmReason = parsed.reason || '';
+    localScores[key].llmAnalysis = llmAnalysis;
     localScores[key].llmLoading = false;
-    // persist llm scores to firebase so classifica is shared
-    await update(ref(db, 'scores/' + key), { llm: llmScores, llmReason: parsed.reason || '' });
+    await update(ref(db, 'scores/' + key), { llm: llmScores, llmReason: parsed.reason || '', llmAnalysis });
     renderAdmin();
     renderBoard();
-    toast('> AI ha valutato: ' + sub.team);
+    toast('> Fase 1 completata: ' + sub.team);
   } catch(e) {
     localScores[key].llmLoading = false;
     renderAdmin();
-    toast('> errore AI — riprova');
+    toast('> errore AI fase 1 — riprova');
+    console.error(e);
+  }
+};
+
+/* — FASE 2: confronto con giudice umano — */
+window.runLLMPhase2 = async function(key) {
+  const sub = liveSubs[key];
+  if (!sub) return;
+  const sc = localScores[key];
+  if (!sc || !sc.llm || !sc.human) return;
+  sc.llmPhase2Loading = true;
+  renderAdmin();
+
+  const humanStr = CRIT.map(c => `${c.l} (${c.k}): ${sc.human[c.k] || 0}/20`).join('\n');
+  const aiStr = CRIT.map(c => `${c.l} (${c.k}): ${sc.llm[c.k] || 0}/20`).join('\n');
+  const aiAnalysisStr = sc.llmAnalysis
+    ? CRIT.map(c => `${c.l}: ${sc.llmAnalysis[c.k] || ''}`).join('\n')
+    : '';
+
+  const prompt = `Sei un giudice esperto a un workshop di innovazione AI presso The Walt Disney Company Italy.
+Hai già valutato un brief in autonomia (Fase 1). Ora il giudice umano ha assegnato i propri punteggi.
+Il tuo compito è confrontare le due valutazioni criterio per criterio.
+
+${buildBriefBlock(sub)}
+
+PUNTEGGI DEL GIUDICE UMANO:
+${humanStr}
+
+I TUOI PUNTEGGI (Fase 1):
+${aiStr}
+
+LA TUA ANALISI PRECEDENTE:
+${aiAnalysisStr}
+
+ISTRUZIONI:
+- Per OGNI criterio, confronta il tuo punteggio con quello umano.
+- Se c'è accordo (differenza ≤ 2 punti), spiega brevemente perché convergete.
+- Se c'è disaccordo (differenza > 2 punti), analizza in dettaglio: cosa potrebbe aver visto il giudice umano che tu non hai colto, o viceversa? Sei disposto a rivedere il tuo punteggio?
+- Concludi con un commento complessivo: la valutazione umana ti fa cambiare idea su qualcosa? Quale giudizio finale daresti dopo questo confronto?
+- Sii rispettoso ma intellettualmente onesto. Non essere deferente: se pensi che il giudice umano abbia sbagliato, dillo con argomenti.
+
+Rispondi ESCLUSIVAMENTE con un oggetto JSON valido — niente markdown, nessun testo fuori dal JSON:
+{
+  "p_comparison": "<confronto criterio p>",
+  "a_comparison": "<confronto criterio a>",
+  "b_comparison": "<confronto criterio b>",
+  "f_comparison": "<confronto criterio f>",
+  "o_comparison": "<confronto criterio o>",
+  "overall": "<commento complessivo sul confronto e giudizio finale>"
+}`;
+
+  try {
+    const parsed = await callLLM(prompt);
+    const comparison = {
+      p: parsed.p_comparison, a: parsed.a_comparison, b: parsed.b_comparison,
+      f: parsed.f_comparison, o: parsed.o_comparison, overall: parsed.overall
+    };
+    sc.llmComparison = comparison;
+    sc.llmPhase2Loading = false;
+    await update(ref(db, 'scores/' + key), { llmComparison: comparison });
+    renderAdmin();
+    toast('> Fase 2 completata: ' + sub.team);
+  } catch(e) {
+    sc.llmPhase2Loading = false;
+    renderAdmin();
+    toast('> errore AI fase 2 — riprova');
     console.error(e);
   }
 };
@@ -822,15 +922,47 @@ function renderAdmin() {
     const lt = totL(key);
     const hasLLM = !!sc.llm;
 
+    const hasHuman = sc.human && CRIT.some(c => sc.human[c.k] > 0);
+    const hasComparison = !!sc.llmComparison;
+
+    const analysisHtml = hasLLM && sc.llmAnalysis
+      ? CRIT.map(c => `<div class="llm-criterion"><div class="llm-crit-header">${c.l} <span class="llm-crit-score">${sc.llm[c.k]||'—'}/20</span></div><div class="llm-crit-text">${escHtml(sc.llmAnalysis[c.k]||'')}</div></div>`).join('')
+      : '';
+
+    const phase2Html = sc.llmPhase2Loading
+      ? `<div class="llm-box phase2"><span class="llm-thinking">> confronto con giudice umano in corso…</span></div>`
+      : hasComparison
+        ? `<div class="llm-box phase2">
+            <div class="judge-title llm" style="margin-bottom:10px;">⇄ Fase 2 — Confronto con Giudice Umano</div>
+            ${CRIT.map(c => {
+              const hVal = (sc.human||{})[c.k]||0;
+              const aVal = (sc.llm||{})[c.k]||0;
+              const diff = Math.abs(hVal - aVal);
+              const tag = diff <= 2 ? '<span class="cmp-tag accord">accordo</span>' : '<span class="cmp-tag disaccord">disaccordo</span>';
+              return `<div class="llm-criterion"><div class="llm-crit-header">${c.l} ${tag} <span class="cmp-scores">umano ${hVal} · AI ${aVal}</span></div><div class="llm-crit-text">${escHtml(sc.llmComparison[c.k]||'')}</div></div>`;
+            }).join('')}
+            <div class="llm-criterion" style="border-top:1px solid rgba(0,255,0,0.2);padding-top:12px;margin-top:8px;">
+              <div class="llm-crit-header">Giudizio Finale</div>
+              <div class="llm-crit-text">${escHtml(sc.llmComparison.overall||'')}</div>
+            </div>
+          </div>`
+        : hasLLM && hasHuman
+          ? `<button class="btn-sm" style="margin-top:10px;" onclick="runLLMPhase2('${key}')">⇄ Avvia Fase 2 — Confronto →</button>`
+          : hasLLM
+            ? `<div class="llm-hint" style="margin-top:10px;font-size:11px;color:var(--mid-gray);">Assegna i punteggi umani per sbloccare la Fase 2</div>`
+            : '';
+
     const llmPart = sc.llmLoading
-      ? `<div class="llm-box"><span class="llm-thinking">> lettura del brief in corso…</span></div>`
+      ? `<div class="llm-box"><span class="llm-thinking">> analisi del brief in corso…</span></div>`
       : hasLLM
         ? `<div class="llm-box"><div class="llm-text">${escHtml(sc.llmReason||'')}</div></div>
+           ${analysisHtml ? `<div class="llm-analysis">${analysisHtml}</div>` : ''}
            <div class="llm-score-grid">
              ${CRIT.map(c=>`<div class="lsbox"><div class="lslabel">${c.l}</div><div class="lsval">${sc.llm[c.k]||'—'}</div></div>`).join('')}
              <div class="lsbox" style="border-color:rgba(0,255,0,0.35)"><div class="lslabel">Totale</div><div class="lsval">${lt}</div></div>
-           </div>`
-        : `<button class="btn-sm" onclick="runLLM('${key}')">_ Avvia AI Giudice →</button>`;
+           </div>
+           ${phase2Html}`
+        : `<button class="btn-sm" onclick="runLLM('${key}')">_ Avvia Fase 1 — Valutazione Autonoma →</button>`;
 
     return `
 <div class="sub-card">
