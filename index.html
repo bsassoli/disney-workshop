@@ -32,6 +32,12 @@ nav {
 .brand-mark .us { color: var(--green); }
 .brand-sep { color: var(--mid-gray); font-size: 20px; font-weight: 300; }
 .brand-sub { font-family: 'Fira Code', monospace; font-size: 11px; color: var(--gray); letter-spacing: 0.1em; text-transform: uppercase; }
+.nav-timer { display: flex; align-items: center; gap: 10px; }
+.nav-timer-display { font-family: 'Fira Code', monospace; font-size: 28px; font-weight: 700; color: var(--green); letter-spacing: 0.04em; font-variant-numeric: tabular-nums; }
+.nav-timer-display.warn { color: var(--danger); }
+.timer-btn-sm { background: none; border: 1px solid var(--mid-gray); color: #fff; font-family: 'Fira Code', monospace; font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase; padding: 4px 10px; cursor: pointer; transition: all 0.15s; }
+.timer-btn-sm:hover { border-color: var(--green); color: var(--green); }
+.timer-btn-sm.red:hover { border-color: var(--danger); color: var(--danger); }
 .nav-right { display: flex; align-items: center; gap: 16px; }
 .nav-tabs { display: flex; gap: 2px; }
 .nav-tab {
@@ -217,12 +223,6 @@ select option { background: #111; color: #fff; }
 .verdict-text { font-size: 14px; color: #ccc; line-height: 1.7; }
 .verdict-loading { font-size: 12px; color: #6db800; font-style: italic; font-family: 'Fira Code', monospace; padding: 20px 0; }
 
-.timer-wrap { display: flex; align-items: center; gap: 16px; margin: 20px 0; }
-.timer-display { font-family: 'Fira Code', monospace; font-size: 40px; font-weight: 700; color: var(--green); letter-spacing: 0.04em; font-variant-numeric: tabular-nums; }
-.timer-display.warn { color: var(--danger); }
-.timer-btn { background: none; border: 1px solid var(--mid-gray); color: #fff; font-family: 'Fira Code', monospace; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; padding: 8px 16px; cursor: pointer; transition: all 0.15s; }
-.timer-btn:hover { border-color: var(--green); color: var(--green); }
-.timer-btn.red:hover { border-color: var(--danger); color: var(--danger); }
 
 .toast { position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%) translateY(16px); background: var(--green); color: var(--black); font-family: 'Fira Code', monospace; font-size: 12px; font-weight: 700; letter-spacing: 0.08em; padding: 11px 28px; opacity: 0; transition: all 0.25s; pointer-events: none; z-index: 9999; text-transform: uppercase; }
 .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
@@ -255,6 +255,11 @@ select option { background: #111; color: #fff; }
     <span class="brand-sep">/</span>
     <span class="brand-sub">AI App Challenge — Disney Italy</span>
   </div>
+  <div class="nav-timer">
+    <span class="nav-timer-display" id="timerDisplay">45:00</span>
+    <button class="timer-btn-sm admin-only" style="display:none;" id="timerBtn" onclick="timerToggle()">Avvia</button>
+    <button class="timer-btn-sm red admin-only" style="display:none;" onclick="timerReset()">Reset</button>
+  </div>
   <div class="nav-right">
     <div class="db-status">
       <span class="db-dot" id="dbDot"></span>
@@ -278,11 +283,6 @@ select option { background: #111; color: #fff; }
     <div class="eyebrow"><span class="dot"></span>Workshop in corso</div>
     <h1><span class="marker">_</span>Costruite un'app con l'AI.<br>In 45 minuti.</h1>
     <p class="subtitle-text">The Walt Disney Company Italy &nbsp;·&nbsp; deepers.ai</p>
-    <div class="timer-wrap">
-      <span class="timer-display" id="timerDisplay">45:00</span>
-      <button class="timer-btn" id="timerBtn" onclick="timerToggle()">Avvia</button>
-      <button class="timer-btn red" onclick="timerReset()">Reset</button>
-    </div>
   </div>
   <hr class="rule">
   <div style="margin-top:28px;">
