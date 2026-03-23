@@ -206,6 +206,17 @@ select option { background: #111; color: #fff; }
 .bcol.lc .bv { color: var(--green); }
 .bcol.ac .bv { color: #fff; }
 
+.verdict-card { border: 1px solid var(--mid-gray); padding: 20px 24px; margin-bottom: 12px; }
+.verdict-card.winner { border-color: var(--green); background: rgba(0,255,0,0.025); }
+.verdict-rank { font-family: 'Fira Code', monospace; font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--gray); margin-bottom: 4px; }
+.verdict-rank.first { color: var(--green); }
+.verdict-team { font-family: 'Fira Code', monospace; font-size: 16px; font-weight: 700; margin-bottom: 2px; }
+.verdict-app { font-size: 13px; color: var(--gray); margin-bottom: 12px; }
+.verdict-score { font-family: 'Fira Code', monospace; font-size: 12px; color: var(--mid-gray); margin-bottom: 12px; }
+.verdict-score strong { color: #fff; font-size: 14px; }
+.verdict-text { font-size: 14px; color: #ccc; line-height: 1.7; }
+.verdict-loading { font-size: 12px; color: #6db800; font-style: italic; font-family: 'Fira Code', monospace; padding: 20px 0; }
+
 .timer-wrap { display: flex; align-items: center; gap: 16px; margin: 20px 0; }
 .timer-display { font-family: 'Fira Code', monospace; font-size: 40px; font-weight: 700; color: var(--green); letter-spacing: 0.04em; font-variant-numeric: tabular-nums; }
 .timer-display.warn { color: var(--danger); }
@@ -256,6 +267,7 @@ select option { background: #111; color: #fff; }
       <button class="nav-tab admin-only" style="display:none;" onclick="showView('judge',this)">⊕ Giudica</button>
       <button class="nav-tab"         onclick="showView('board',this)">↑ Classifica</button>
       <button class="nav-tab admin-only" style="display:none;color:var(--danger);" onclick="showView('admin',this)">⚙ AI</button>
+      <button class="nav-tab admin-only" style="display:none;" onclick="showView('verdict',this)">✦ Verdetto</button>
     </div>
   </div>
 </nav>
@@ -479,6 +491,21 @@ select option { background: #111; color: #fff; }
   </div>
   <div id="boardContent">
     <div class="empty"><div class="em">—</div><p>I punteggi appariranno una volta iniziata la valutazione.</p></div>
+  </div>
+</div>
+
+<!-- ══════════════════════ VERDETTO FINALE ══════════════════════ -->
+<div id="view-verdict" class="view">
+  <div style="margin-bottom:36px;">
+    <div class="eyebrow">Il Verdetto</div>
+    <h1><span class="marker">✦</span>Verdetto Finale</h1>
+    <p class="subtitle-text">La narrazione della gara, team per team</p>
+  </div>
+  <div style="margin-bottom:20px;">
+    <button class="btn-sm" id="btnVerdict" onclick="generateVerdict()">✦ Genera Verdetto →</button>
+  </div>
+  <div id="verdictContent">
+    <div class="empty"><div class="em">✦</div><p>Premi il pulsante per generare il verdetto finale.</p></div>
   </div>
 </div>
 
@@ -898,6 +925,95 @@ function renderBoard() {
       <div class="bcol ac"><span class="bv">${r.hasLLM?Math.round(r.avg):'—'}</span><span class="bl">${r.hasLLM?'/ 100':'solo umano'}</span></div>
     </div>`).join('');
 }
+
+/* ═══════ VERDETTO FINALE ═══════ */
+window.generateVerdict = async function() {
+  const subs = Object.entries(liveSubs);
+  if (!subs.length) { toast('> nessun brief da giudicare'); return; }
+
+  const rows = subs.map(([key, sub]) => {
+    const sc = localScores[key]||{};
+    const ht = totH(key);
+    const lt = totL(key);
+    const hasLLM = !!sc.llm;
+    return { key, sub, sc, ht, lt, hasLLM, avg: hasLLM ? (ht+lt)/2 : ht };
+  }).sort((a,b) => b.avg - a.avg);
+
+  const el = document.getElementById('verdictContent');
+  el.innerHTML = '<div class="verdict-loading">> generazione del verdetto in corso… potrebbe volerci un minuto</div>';
+  document.getElementById('btnVerdict').disabled = true;
+
+  const classifica = rows.map((r,i) => {
+    const scores = CRIT.map(c => `${c.l}: umano ${(r.sc.human||{})[c.k]||0}/20, AI ${(r.sc.llm||{})[c.k]||'—'}/20`).join('; ');
+    const analysis = r.sc.llmAnalysis ? CRIT.map(c => `${c.l}: ${r.sc.llmAnalysis[c.k]||''}`).join('\n') : '';
+    const comparison = r.sc.llmComparison ? `Confronto AI-Umano: ${r.sc.llmComparison.overall||''}` : '';
+    return `#${i+1} — ${r.sub.team} (${r.sub.appname})
+Punteggio: umano ${r.ht}/100, AI ${r.hasLLM?r.lt:'n/a'}/100, media ${r.hasLLM?Math.round(r.avg):'n/a'}/100
+Problema: ${r.sub.problem}
+Soluzione: ${r.sub.solution}
+Funzionalità: ${r.sub.features}
+Valore: ${r.sub.value}
+Punteggi per criterio: ${scores}
+${analysis ? 'Analisi AI:\n' + analysis : ''}
+${comparison}`;
+  }).join('\n\n---\n\n');
+
+  const prompt = `Sei il narratore ufficiale dell'AI App Challenge di The Walt Disney Company Italy. Il tuo compito è scrivere il VERDETTO FINALE della gara: una narrazione vivace, un po' scherzosa ma rispettosa, che racconta come è andata.
+
+CLASSIFICA COMPLETA CON DETTAGLI:
+
+${classifica}
+
+ISTRUZIONI:
+- Scrivi in italiano.
+- Inizia con un'introduzione che dà il tono: siamo alla fine di una sfida entusiasmante, i team hanno dato tutto.
+- Per OGNI team (dal primo all'ultimo in classifica), scrivi un paragrafo dedicato che includa:
+  · Il nome del team e della loro app
+  · Cosa hanno fatto bene (sii specifico, cita elementi del brief)
+  · Cosa avrebbero potuto fare meglio (costruttivo, mai cattivo)
+  · Un commento colorito o una metafora divertente legata al mondo Disney
+- Per il vincitore, aggiungi un po' di enfasi e celebrazione.
+- Chiudi con un messaggio finale che celebri tutti i partecipanti e lo spirito di innovazione.
+- Il tono deve essere: commentatore sportivo incontra critico gastronomico incontra fan Disney. Informale ma intelligente.
+- NON usare emoji.
+- Scrivi in HTML semplice (usa <h3>, <p>, <strong>, <em>). Non usare markdown.
+
+Rispondi ESCLUSIVAMENTE con il codice HTML — niente JSON, niente markdown, niente testo fuori dall'HTML.`;
+
+  try {
+    const res = await fetch('/api/judge', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 8000,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || `API error ${res.status}`);
+    const raw = (data.content||[]).find(b => b.type==='text')?.text || '';
+    if (!raw) throw new Error('Empty response');
+
+    // build verdict page
+    el.innerHTML = rows.map((r,i) => `
+      <div class="verdict-card ${i===0?'winner':''}">
+        <div class="verdict-rank ${i===0?'first':''}">${i===0?'★ Vincitore':'#'+(i+1)}</div>
+        <div class="verdict-team">${escHtml(r.sub.team)}</div>
+        <div class="verdict-app">> ${escHtml(r.sub.appname)}</div>
+        <div class="verdict-score">Umano <strong>${r.ht}</strong> · AI <strong>${r.hasLLM?r.lt:'—'}</strong> · Media <strong>${r.hasLLM?Math.round(r.avg):'—'}</strong> / 100</div>
+      </div>`).join('') +
+      `<div class="verdict-card" style="border-color:var(--green);"><div class="verdict-text">${raw}</div></div>`;
+
+    document.getElementById('btnVerdict').disabled = false;
+    toast('> verdetto generato!');
+  } catch(e) {
+    el.innerHTML = '<div class="empty"><div class="em">!</div><p>Errore nella generazione. Riprova.</p></div>';
+    document.getElementById('btnVerdict').disabled = false;
+    toast('> errore generazione verdetto');
+    console.error(e);
+  }
+};
 
 /* ═══════ UTILS ═══════ */
 let tId;
