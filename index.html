@@ -831,8 +831,8 @@ ${aiAnalysisStr}
 
 ISTRUZIONI:
 - Per OGNI criterio, confronta il tuo punteggio con quello umano.
-- Se c'è accordo (differenza ≤ 2 punti), spiega brevemente perché convergete.
-- Se c'è disaccordo (differenza > 2 punti), analizza in dettaglio: cosa potrebbe aver visto il giudice umano che tu non hai colto, o viceversa? Sei disposto a rivedere il tuo punteggio?
+- Se c'è accordo (differenza ≤ 4 punti), spiega brevemente perché convergete.
+- Se c'è disaccordo (differenza ≥ 5 punti), analizza in dettaglio: cosa potrebbe aver visto il giudice umano che tu non hai colto, o viceversa? Sei disposto a rivedere il tuo punteggio?
 - Concludi con un commento complessivo: la valutazione umana ti fa cambiare idea su qualcosa? Quale giudizio finale daresti dopo questo confronto?
 - Sii rispettoso ma intellettualmente onesto. Non essere deferente: se pensi che il giudice umano abbia sbagliato, dillo con argomenti.
 
@@ -941,7 +941,7 @@ function renderAdmin() {
               const hVal = (sc.human||{})[c.k]||0;
               const aVal = (sc.llm||{})[c.k]||0;
               const diff = Math.abs(hVal - aVal);
-              const tag = diff <= 2 ? '<span class="cmp-tag accord">accordo</span>' : '<span class="cmp-tag disaccord">disaccordo</span>';
+              const tag = diff <= 4 ? '<span class="cmp-tag accord">accordo</span>' : '<span class="cmp-tag disaccord">disaccordo</span>';
               return `<div class="llm-criterion"><div class="llm-crit-header">${c.l} ${tag} <span class="cmp-scores">umano ${hVal} · AI ${aVal}</span></div><div class="llm-crit-text">${escHtml(sc.llmComparison[c.k]||'')}</div></div>`;
             }).join('')}
             <div class="llm-criterion" style="border-top:1px solid rgba(0,255,0,0.2);padding-top:12px;margin-top:8px;">
