@@ -253,7 +253,7 @@ select option { background: #111; color: #fff; }
       <button class="nav-tab active"  onclick="showView('brief',this)">_ Brief</button>
       <button class="nav-tab"         onclick="showView('rubric',this)">&gt; Rubrica</button>
       <button class="nav-tab"         onclick="showView('submit',this)">+ Invia</button>
-      <button class="nav-tab"         onclick="showView('judge',this)">⊕ Giudica</button>
+      <button class="nav-tab admin-only" style="display:none;" onclick="showView('judge',this)">⊕ Giudica</button>
       <button class="nav-tab"         onclick="showView('board',this)">↑ Classifica</button>
       <button class="nav-tab admin-only" style="display:none;color:var(--danger);" onclick="showView('admin',this)">⚙ AI</button>
     </div>
@@ -536,7 +536,10 @@ onValue(ref(db, 'scores'), snap => {
     if (remoteScores[k].llmAnalysis) localScores[k].llmAnalysis = remoteScores[k].llmAnalysis;
     if (remoteScores[k].llmComparison) localScores[k].llmComparison = remoteScores[k].llmComparison;
   });
-  renderJudge();
+  // only re-render judge view if no score input is focused (avoids scroll jump)
+  if (!document.activeElement || document.activeElement.tagName !== 'INPUT' || !document.activeElement.closest('#judgeContent')) {
+    renderJudge();
+  }
   renderBoard();
   renderAdmin();
 });
