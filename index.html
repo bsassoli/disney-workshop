@@ -158,7 +158,10 @@ select option { background: #111; color: #fff; }
 .sf input[type="number"]:focus { border-color: var(--blue); }
 .stotal { text-align: center; padding: 8px 4px; border: 1px solid var(--green); background: rgba(0,255,0,0.04); }
 .stotal .stlabel { font-size: 9px; font-family: 'Fira Code', monospace; text-transform: uppercase; letter-spacing: 0.06em; color: var(--green); margin-bottom: 3px; }
-.stotal .stval { font-size: 20px; font-weight: 700; font-family: 'Fira Code', monospace; color: var(--green); }
+.stotal .stval { font-size: 20px; font-weight: 700; font-family: 'Fira Code', monospace; color: #d4a020; }
+.stotal .stval.valid { color: var(--green); }
+.stotal .stval.over { color: var(--danger); }
+.ht-target { font-size: 11px; font-weight: 400; color: var(--mid-gray); margin-left: 4px; }
 
 .llm-box { background: #040c00; border: 1px solid #1a3800; padding: 14px 16px; margin: 10px 0; min-height: 52px; }
 .llm-box.phase2 { border-color: #2a4a00; background: #061000; }
@@ -328,37 +331,37 @@ select option { background: #111; color: #fff; }
       <tbody>
         <tr>
           <td><strong>Chiarezza del Problema</strong></td>
-          <td class="pts">/ 20</td>
+          <td class="pts">/ 10</td>
           <td>Il problema è chiaro, reale e ben spiegato. Si capisce chi lo ha e perché è importante.</td>
           <td>Problemi vaghi ("i dipendenti perdono tempo"), problemi inesistenti, soluzioni che cercano un problema.</td>
         </tr>
         <tr>
           <td><strong>Necessità dell'AI</strong></td>
-          <td class="pts">/ 20</td>
+          <td class="pts">/ 10</td>
           <td>Senza AI l'app non funzionerebbe, o funzionerebbe molto peggio. L'AI è il motore, non un dettaglio.</td>
           <td>Un modulo con l'etichetta "AI". Una ricerca rinominata. Cose che si fanno già con un foglio Excel.</td>
         </tr>
         <tr>
           <td><strong>Impatto di Business</strong></td>
-          <td class="pts">/ 20</td>
+          <td class="pts">/ 10</td>
           <td>Il valore per Disney Italy è concreto e credibile. Si capisce cosa migliora e quanto.</td>
           <td>Promesse vaghe, nessun legame con il business reale di Disney, impatto trascurabile.</td>
         </tr>
         <tr>
           <td><strong>Fattibilità</strong></td>
-          <td class="pts">/ 20</td>
+          <td class="pts">/ 10</td>
           <td>L'app è abbastanza semplice da poter essere costruita in 60 minuti. Le funzioni principali sono chiare e realizzabili.</td>
           <td>Troppo complicata. Troppe funzionalità. Non si capisce cosa fa davvero.</td>
         </tr>
         <tr>
           <td><strong>Originalità</strong></td>
-          <td class="pts">/ 20</td>
+          <td class="pts">/ 10</td>
           <td>L'idea è nuova, sorprendente e dimostra che conoscete davvero Disney. Resta in mente.</td>
           <td>ChatGPT con il logo Disney sopra. Un problema che tutte le aziende hanno già risolto.</td>
         </tr>
         <tr class="tr-total">
           <td><strong>Totale</strong></td>
-          <td class="pts">/ 100</td>
+          <td class="pts">/ 50</td>
           <td colspan="2">Punteggio finale = media dei totali del giudice umano e dell'AI co-giudice.</td>
         </tr>
       </tbody>
@@ -374,7 +377,7 @@ select option { background: #111; color: #fff; }
   <div class="section">
     <h2>Processo di Valutazione</h2>
     <div class="constraint"><span class="clabel">Fase 1</span><span class="cval">Ogni team presenta il proprio brief (3 minuti). Nessuna slide richiesta.</span></div>
-    <div class="constraint"><span class="clabel">Fase 2</span><span class="cval">Il giudice umano assegna un punteggio per ogni criterio (0–20).</span></div>
+    <div class="constraint"><span class="clabel">Fase 2</span><span class="cval">Il giudice umano assegna un punteggio per ogni criterio (0–10).</span></div>
     <div class="constraint"><span class="clabel">Fase 3</span><span class="cval">Anche l'AI legge il brief e dà i propri punteggi con una motivazione scritta.</span></div>
     <div class="constraint"><span class="clabel">Fase 4</span><span class="cval">Punteggio finale = media tra giudice umano e AI. L'idea vincitrice verrà costruita con l'AI da deepers e consegnata in giornata.</span></div>
   </div>
@@ -451,7 +454,7 @@ select option { background: #111; color: #fff; }
   <div style="margin-bottom:36px;">
     <div class="eyebrow">Pannello di Valutazione</div>
     <h1><span class="marker">&gt;</span>Giudica i Brief</h1>
-    <p class="subtitle-text">Assegna 0–20 per criterio · Poi attiva l'AI co-giudice</p>
+    <p class="subtitle-text">Assegna 0–10 per criterio · Poi attiva l'AI co-giudice</p>
   </div>
   <div id="judgeContent">
     <div class="empty"><div class="em">{ }</div><p>Nessun brief ancora. I team inviano nel tab Invia.</p></div>
@@ -661,8 +664,8 @@ function renderJudge() {
     const humanInputs = CRIT.map(c => `
       <div class="sf">
         <div class="sf-label">${c.l}</div>
-        <input type="number" min="0" max="20" value="${h[c.k]||''}" placeholder="—"
-          aria-label="${c.l} (0–20)"
+        <input type="number" min="0" max="10" value="${h[c.k]||''}" placeholder="—"
+          aria-label="${c.l} (0–10)"
           oninput="saveH('${key}','${c.k}',this.value,this)">
       </div>`).join('');
 
@@ -685,7 +688,7 @@ function renderJudge() {
     <div class="judge-title human">_ Giudice Umano <span class="j-badge" style="border-color:var(--blue);color:var(--blue);">Bernardino</span></div>
     <div class="score-grid">
       ${humanInputs}
-      <div class="stotal"><div class="stlabel">Totale</div><div class="stval" id="ht-${key}">${ht||'—'}</div></div>
+      <div class="stotal"><div class="stlabel">Totale</div><div class="stval ${ht===50?'valid':ht>50?'over':''}" id="ht-${key}">${ht||'—'}<span class="ht-target">/ 50</span></div></div>
     </div>
   </div>
 
@@ -702,15 +705,20 @@ function renderJudge() {
 window.saveH = function(key, k, v, inputEl) {
   if (!localScores[key]) localScores[key] = { human: {} };
   if (!localScores[key].human) localScores[key].human = {};
-  const clamped = v === '' ? 0 : Math.min(20, Math.max(0, parseInt(v)||0));
+  const clamped = v === '' ? 0 : Math.min(10, Math.max(0, parseInt(v)||0));
   localScores[key].human[k] = clamped;
   if (inputEl && v !== '' && parseInt(v) !== clamped) inputEl.value = clamped;
   const total = CRIT.reduce((s,c) => s + (localScores[key].human[c.k]||0), 0);
   const el = document.getElementById('ht-' + key);
-  if (el) el.textContent = total || '—';
+  if (el) {
+    el.innerHTML = (total || '—') + '<span class="ht-target">/ 50</span>';
+    el.className = 'stval ' + (total === 50 ? 'valid' : total > 50 ? 'over' : '');
+  }
   renderBoard();
-  // persist human scores to Firebase
-  update(ref(db, 'scores/' + key), { human: localScores[key].human });
+  // persist human scores to Firebase only if total is valid
+  if (total === 50) {
+    update(ref(db, 'scores/' + key), { human: localScores[key].human });
+  }
 };
 
 /* ═══════ LLM JUDGE ═══════ */
@@ -753,11 +761,11 @@ window.runLLM = async function(key) {
   renderAdmin();
 
   const prompt = `Sei un giudice esperto, rigoroso e articolato a un workshop di innovazione AI presso The Walt Disney Company Italy.
-Un team ha presentato il concept di un'app AI. Devi valutarlo in profondità secondo cinque criteri, ognuno con punteggio da 0 a 20.
+Un team ha presentato il concept di un'app AI. Devi valutarlo in profondità secondo cinque criteri, ognuno con punteggio da 0 a 10.
 
 ${buildBriefBlock(sub)}
 
-CRITERI (punteggio 0–20 ciascuno):
+CRITERI (punteggio 0–10 ciascuno, totale massimo 50):
 p — Chiarezza del Problema: Il problema è specifico, reale e ben articolato? Sappiamo chi ce l'ha e perché è rilevante?
 a — Necessità dell'AI: L'AI è essenziale, non decorativa? Rimuoverla degraderebbe significativamente il valore?
 b — Impatto di Business: Il valore creato è misurabile e significativo per Disney Italy? Il caso ROI è credibile?
@@ -808,8 +816,8 @@ window.runLLMPhase2 = async function(key) {
   sc.llmPhase2Loading = true;
   renderAdmin();
 
-  const humanStr = CRIT.map(c => `${c.l} (${c.k}): ${sc.human[c.k] || 0}/20`).join('\n');
-  const aiStr = CRIT.map(c => `${c.l} (${c.k}): ${sc.llm[c.k] || 0}/20`).join('\n');
+  const humanStr = CRIT.map(c => `${c.l} (${c.k}): ${sc.human[c.k] || 0}/10`).join('\n');
+  const aiStr = CRIT.map(c => `${c.l} (${c.k}): ${sc.llm[c.k] || 0}/10`).join('\n');
   const aiAnalysisStr = sc.llmAnalysis
     ? CRIT.map(c => `${c.l}: ${sc.llmAnalysis[c.k] || ''}`).join('\n')
     : '';
@@ -893,9 +901,9 @@ function renderBoard() {
         <div class="board-team">${escHtml(r.sub.team)}</div>
         <div class="board-app">> ${escHtml(r.sub.appname)}</div>
       </div>
-      <div class="bcol hc"><span class="bv">${r.ht||'—'}</span><span class="bl">/ 100</span></div>
-      <div class="bcol lc"><span class="bv">${r.hasLLM?r.lt:'—'}</span><span class="bl">/ 100</span></div>
-      <div class="bcol ac"><span class="bv">${r.hasLLM?Math.round(r.avg):'—'}</span><span class="bl">${r.hasLLM?'/ 100':'solo umano'}</span></div>
+      <div class="bcol hc"><span class="bv">${r.ht||'—'}</span><span class="bl">/ 50</span></div>
+      <div class="bcol lc"><span class="bv">${r.hasLLM?r.lt:'—'}</span><span class="bl">/ 50</span></div>
+      <div class="bcol ac"><span class="bv">${r.hasLLM?Math.round(r.avg):'—'}</span><span class="bl">${r.hasLLM?'/ 50':'solo umano'}</span></div>
     </div>`).join('');
 }
 
@@ -929,7 +937,7 @@ function renderAdmin() {
     const hasComparison = !!sc.llmComparison;
 
     const analysisHtml = hasLLM && sc.llmAnalysis
-      ? CRIT.map(c => `<div class="llm-criterion"><div class="llm-crit-header">${c.l} <span class="llm-crit-score">${sc.llm[c.k]||'—'}/20</span></div><div class="llm-crit-text">${escHtml(sc.llmAnalysis[c.k]||'')}</div></div>`).join('')
+      ? CRIT.map(c => `<div class="llm-criterion"><div class="llm-crit-header">${c.l} <span class="llm-crit-score">${sc.llm[c.k]||'—'}/10</span></div><div class="llm-crit-text">${escHtml(sc.llmAnalysis[c.k]||'')}</div></div>`).join('')
       : '';
 
     const phase2Html = sc.llmPhase2Loading
