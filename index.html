@@ -286,7 +286,7 @@ select option { background: #111; color: #fff; }
       <div class="ci"><span class="ci-m">&gt;</span><span class="ci-t"><strong>Nome dell'App</strong> — Un nome chiaro e memorabile.</span></div>
       <div class="ci"><span class="ci-m">&gt;</span><span class="ci-t"><strong>Descrizione del Problema</strong> — Quale problema concreto risolvete? Chi lo ha, quanto spesso, quanto costa?</span></div>
       <div class="ci"><span class="ci-m">&gt;</span><span class="ci-t"><strong>Soluzione Proposta</strong> — Cosa fa l'app? Perché senza AI non funzionerebbe?</span></div>
-      <div class="ci"><span class="ci-m">&gt;</span><span class="ci-t"><strong>Funzionalità Chiave</strong> — Esattamente 3. Devono essere semplici abbastanza da poter essere costruite in meno di 60 minuti.</span></div>
+      <div class="ci"><span class="ci-m">&gt;</span><span class="ci-t"><strong>Funzionalità Chiave</strong> — Minimo 3. Devono essere semplici abbastanza da poter essere costruite in meno di 60 minuti.</span></div>
       <div class="ci"><span class="ci-m">&gt;</span><span class="ci-t"><strong>Utente Principale</strong> — Chi userà l'app? Un dipendente Disney o un cliente finale?</span></div>
       <div class="ci"><span class="ci-m">&gt;</span><span class="ci-t"><strong>Valore di Business</strong> — Che risultato porta? Tempo risparmiato, più ricavi, più coinvolgimento, meno costi?</span></div>
     </div>
@@ -430,14 +430,14 @@ select option { background: #111; color: #fff; }
       <div class="char-count" id="cc_solution">0 / 1000</div>
     </div>
     <div class="form-group">
-      <label class="form-label" for="f_features">3 Funzionalità Chiave (una per riga)</label>
+      <label class="form-label" for="f_features">Funzionalità Chiave (minimo 3, una per riga)</label>
       <textarea id="f_features" rows="4" maxlength="800" placeholder="Funzionalità 1&#10;Funzionalità 2&#10;Funzionalità 3" oninput="cc(this,'cc_features',800)"></textarea>
-      <div class="char-count" id="cc_features">0 / 400</div>
+      <div class="char-count" id="cc_features">0 / 800</div>
     </div>
     <div class="form-group">
       <label class="form-label" for="f_value">Valore di Business</label>
       <textarea id="f_value" rows="3" maxlength="600" placeholder="Che risultato porta? Tempo risparmiato, più ricavi, più coinvolgimento, meno costi…" oninput="cc(this,'cc_value',600)"></textarea>
-      <div class="char-count" id="cc_value">0 / 300</div>
+      <div class="char-count" id="cc_value">0 / 600</div>
     </div>
     <div style="display:flex; align-items:center; gap:16px; margin-top:6px;">
       <button class="btn-primary" id="submitBtn" onclick="submitBrief()">_ Invia Brief</button>
@@ -808,8 +808,8 @@ window.runLLMPhase2 = async function(key) {
   sc.llmPhase2Loading = true;
   renderAdmin();
 
-  const humanStr = CRIT.map(c => `${c.l} (${c.k}): ${sc.human[c.k] || 0}/10`).join('\n');
-  const aiStr = CRIT.map(c => `${c.l} (${c.k}): ${sc.llm[c.k] || 0}/10`).join('\n');
+  const humanStr = CRIT.map(c => `${c.l} (${c.k}): ${sc.human[c.k] || 0}/20`).join('\n');
+  const aiStr = CRIT.map(c => `${c.l} (${c.k}): ${sc.llm[c.k] || 0}/20`).join('\n');
   const aiAnalysisStr = sc.llmAnalysis
     ? CRIT.map(c => `${c.l}: ${sc.llmAnalysis[c.k] || ''}`).join('\n')
     : '';
@@ -929,7 +929,7 @@ function renderAdmin() {
     const hasComparison = !!sc.llmComparison;
 
     const analysisHtml = hasLLM && sc.llmAnalysis
-      ? CRIT.map(c => `<div class="llm-criterion"><div class="llm-crit-header">${c.l} <span class="llm-crit-score">${sc.llm[c.k]||'—'}/10</span></div><div class="llm-crit-text">${escHtml(sc.llmAnalysis[c.k]||'')}</div></div>`).join('')
+      ? CRIT.map(c => `<div class="llm-criterion"><div class="llm-crit-header">${c.l} <span class="llm-crit-score">${sc.llm[c.k]||'—'}/20</span></div><div class="llm-crit-text">${escHtml(sc.llmAnalysis[c.k]||'')}</div></div>`).join('')
       : '';
 
     const phase2Html = sc.llmPhase2Loading
