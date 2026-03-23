@@ -228,6 +228,7 @@ select option { background: #111; color: #fff; }
       <button class="nav-tab"         onclick="showView('submit',this)">+ Invia</button>
       <button class="nav-tab"         onclick="showView('judge',this)">⊕ Giudica</button>
       <button class="nav-tab"         onclick="showView('board',this)">↑ Classifica</button>
+      <button class="nav-tab admin-only" style="display:none;color:var(--danger);" onclick="showView('admin',this)">⚙ AI</button>
     </div>
   </div>
 </nav>
@@ -432,6 +433,18 @@ select option { background: #111; color: #fff; }
   </div>
 </div>
 
+<!-- ══════════════════════ ADMIN AI (nascosto) ══════════════════════ -->
+<div id="view-admin" class="view">
+  <div style="margin-bottom:36px;">
+    <div class="eyebrow" style="color:var(--danger);">Pannello Riservato</div>
+    <h1><span class="marker">&gt;</span>AI Co-Giudice</h1>
+    <p class="subtitle-text">Lancia l'AI su ogni brief · i risultati appariranno in classifica solo dopo</p>
+  </div>
+  <div id="adminContent">
+    <div class="empty"><div class="em">{ }</div><p>Nessun brief ancora.</p></div>
+  </div>
+</div>
+
 <!-- ══════════════════════ CLASSIFICA ══════════════════════ -->
 <div id="view-board" class="view">
   <div style="margin-bottom:36px;">
@@ -485,18 +498,20 @@ onValue(ref(db, 'submissions'), snap => {
   liveSubs = snap.val() || {};
   renderJudge();
   renderBoard();
+  renderAdmin();
 });
 
 onValue(ref(db, 'scores'), snap => {
   const remoteScores = snap.val() || {};
-  // merge remote llm scores into localScores
   Object.keys(remoteScores).forEach(k => {
     if (!localScores[k]) localScores[k] = { human: {} };
+    if (remoteScores[k].human) localScores[k].human = remoteScores[k].human;
     if (remoteScores[k].llm) localScores[k].llm = remoteScores[k].llm;
     if (remoteScores[k].llmReason) localScores[k].llmReason = remoteScores[k].llmReason;
   });
   renderJudge();
   renderBoard();
+  renderAdmin();
 });
 
 /* ═══════ CRITERIA ═══════ */
@@ -608,12 +623,8 @@ function renderJudge() {
   if (!subs.length) { el.innerHTML = '<div class="empty"><div class="em">{ }</div><p>Nessun brief ancora. I team inviano nel tab Invia.</p></div>'; return; }
 
   el.innerHTML = subs.map(([key, sub]) => {
-    const sc = localScores[key]||{};
-    const h = sc.human||{};
+    const h = (localScores[key]||{}).human||{};
     const ht = totH(key);
-    const lt = totL(key);
-    const hasLLM = !!sc.llm;
-    const avg = hasLLM ? Math.round((ht+lt)/2) : '—';
 
     const humanInputs = CRIT.map(c => `
       <div class="sf">
@@ -621,16 +632,6 @@ function renderJudge() {
         <input type="number" min="0" max="20" value="${h[c.k]||''}" placeholder="—"
           oninput="saveH('${key}','${c.k}',this.value)">
       </div>`).join('');
-
-    const llmPart = sc.llmLoading
-      ? `<div class="llm-box"><span class="llm-thinking">> lettura del brief in corso…</span></div>`
-      : hasLLM
-        ? `<div class="llm-box"><div class="llm-text">${escHtml(sc.llmReason||'')}</div></div>
-           <div class="llm-score-grid">
-             ${CRIT.map(c=>`<div class="lsbox"><div class="lslabel">${c.l}</div><div class="lsval">${sc.llm[c.k]||'—'}</div></div>`).join('')}
-             <div class="lsbox" style="border-color:rgba(0,255,0,0.35)"><div class="lslabel">Totale</div><div class="lsval">${lt}</div></div>
-           </div>`
-        : `<button class="btn-sm" onclick="runLLM('${key}')">_ Avvia AI Giudice →</button>`;
 
     return `
 <div class="sub-card">
@@ -655,16 +656,9 @@ function renderJudge() {
     </div>
   </div>
 
-  <div class="judge-block">
-    <div class="judge-title llm">> AI Co-Giudice <span class="j-badge" style="border-color:var(--green);color:var(--green);">claude</span></div>
-    ${llmPart}
-  </div>
-
   <div class="final-row">
     <div class="final-scores">
       <div class="fsi"><div class="fsi-label">Umano</div><div class="fsi-val h">${ht||'—'}</div></div>
-      <div class="fsi"><div class="fsi-label">AI</div><div class="fsi-val l">${hasLLM ? lt : '—'}</div></div>
-      <div class="fsi"><div class="fsi-label">Media</div><div class="fsi-val a">${avg}</div></div>
     </div>
     <button class="btn-secondary" onclick="showView('board', document.querySelectorAll('.nav-tab')[4])">↑ Classifica</button>
   </div>
@@ -680,6 +674,8 @@ window.saveH = function(key, k, v) {
   const el = document.getElementById('ht-' + key);
   if (el) el.textContent = total || '—';
   renderBoard();
+  // persist human scores to Firebase
+  update(ref(db, 'scores/' + key), { human: localScores[key].human });
 };
 
 /* ═══════ LLM JUDGE ═══════ */
@@ -688,7 +684,7 @@ window.runLLM = async function(key) {
   if (!sub) return;
   if (!localScores[key]) localScores[key] = { human: {} };
   localScores[key].llmLoading = true;
-  renderJudge();
+  renderAdmin();
 
   const prompt = `Sei un giudice esperto e rigoroso a un workshop di innovazione AI presso The Walt Disney Company Italy.
 Un team ha presentato il concept di un'app AI. Valutalo secondo cinque criteri, ognuno con punteggio da 0 a 20. Sii preciso e critico.
@@ -735,12 +731,12 @@ Rispondi ONLY con un oggetto JSON valido — niente markdown, nessun testo fuori
     localScores[key].llmLoading = false;
     // persist llm scores to firebase so classifica is shared
     await update(ref(db, 'scores/' + key), { llm: llmScores, llmReason: parsed.reason || '' });
-    renderJudge();
+    renderAdmin();
     renderBoard();
     toast('> AI ha valutato: ' + sub.team);
   } catch(e) {
     localScores[key].llmLoading = false;
-    renderJudge();
+    renderAdmin();
     toast('> errore AI — riprova');
     console.error(e);
   }
@@ -789,6 +785,47 @@ window.toast = function(msg) {
 };
 function escHtml(s) {
   return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+/* ═══════ ADMIN AI PANEL ═══════ */
+const isAdmin = new URLSearchParams(window.location.search).has('admin');
+if (isAdmin) document.querySelectorAll('.admin-only').forEach(el => el.style.display = '');
+
+function renderAdmin() {
+  if (!isAdmin) return;
+  const el = document.getElementById('adminContent');
+  const subs = Object.entries(liveSubs);
+  if (!subs.length) { el.innerHTML = '<div class="empty"><div class="em">{ }</div><p>Nessun brief ancora.</p></div>'; return; }
+
+  el.innerHTML = subs.map(([key, sub]) => {
+    const sc = localScores[key]||{};
+    const lt = totL(key);
+    const hasLLM = !!sc.llm;
+
+    const llmPart = sc.llmLoading
+      ? `<div class="llm-box"><span class="llm-thinking">> lettura del brief in corso…</span></div>`
+      : hasLLM
+        ? `<div class="llm-box"><div class="llm-text">${escHtml(sc.llmReason||'')}</div></div>
+           <div class="llm-score-grid">
+             ${CRIT.map(c=>`<div class="lsbox"><div class="lslabel">${c.l}</div><div class="lsval">${sc.llm[c.k]||'—'}</div></div>`).join('')}
+             <div class="lsbox" style="border-color:rgba(0,255,0,0.35)"><div class="lslabel">Totale</div><div class="lsval">${lt}</div></div>
+           </div>`
+        : `<button class="btn-sm" onclick="runLLM('${key}')">_ Avvia AI Giudice →</button>`;
+
+    return `
+<div class="sub-card">
+  <div class="sc-meta">
+    <span class="team-badge">${escHtml(sub.team)}</span>
+    <span class="sc-appname">${escHtml(sub.appname)}</span>
+  </div>
+  <div class="sc-field"><div class="sc-flabel">Problema</div><div class="sc-fval">${escHtml(sub.problem)}</div></div>
+  <div class="sc-field"><div class="sc-flabel">Soluzione</div><div class="sc-fval">${escHtml(sub.solution)}</div></div>
+  <div class="judge-block">
+    <div class="judge-title llm">> AI Co-Giudice <span class="j-badge" style="border-color:var(--green);color:var(--green);">claude</span></div>
+    ${llmPart}
+  </div>
+</div>`;
+  }).join('');
 }
 </script>
 </body>
