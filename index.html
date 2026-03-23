@@ -11,13 +11,14 @@
   --black: #000000;
   --green: #00FF00;
   --green-dim: #00cc00;
-  --gray: #888888;
+  --gray: #aaaaaa;
   --dark-gray: #111111;
   --mid-gray: #2a2a2a;
   --danger: #ff4444;
+  --blue: #6eb0ff;
 }
 html { scroll-behavior: smooth; }
-body { background: var(--black); color: #fff; font-family: 'Inter', sans-serif; font-size: 14px; line-height: 1.65; min-height: 100vh; }
+body { background: var(--black); color: #fff; font-family: 'Inter', sans-serif; font-size: 18px; line-height: 1.65; min-height: 100vh; }
 
 nav {
   position: sticky; top: 0; z-index: 100;
@@ -85,6 +86,12 @@ input[type="text"], textarea, select {
   padding: 10px 14px; outline: none; transition: border-color 0.15s; resize: vertical;
   -webkit-appearance: none; border-radius: 0;
 }
+select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23888'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 32px;
+}
 input[type="text"]:focus, textarea:focus, select:focus { border-color: var(--green); }
 input::placeholder, textarea::placeholder { color: #333; }
 select option { background: #111; color: #fff; }
@@ -129,18 +136,18 @@ select option { background: #111; color: #fff; }
 .sc-ts { font-family: 'Fira Code', monospace; font-size: 10px; color: var(--gray); margin-left: auto; }
 .sc-field { margin-bottom: 12px; }
 .sc-flabel { font-family: 'Fira Code', monospace; font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--gray); margin-bottom: 4px; }
-.sc-fval { font-size: 13px; color: #ccc; line-height: 1.55; }
+.sc-fval { font-size: 14px; color: #ccc; line-height: 1.55; }
 .sc-grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 12px; }
 
 .judge-block { border-top: 1px solid var(--mid-gray); margin-top: 18px; padding-top: 18px; }
 .judge-title { font-family: 'Fira Code', monospace; font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 700; margin-bottom: 12px; display: flex; align-items: center; gap: 10px; }
-.judge-title.human { color: #6eb0ff; }
+.judge-title.human { color: var(--blue); }
 .judge-title.llm { color: var(--green); }
 .j-badge { font-size: 9px; padding: 2px 8px; border: 1px solid; opacity: 0.6; font-weight: 400; }
 
 .score-grid { display: grid; grid-template-columns: repeat(5, 1fr) 72px; gap: 8px; align-items: end; }
 .sf { display: flex; flex-direction: column; gap: 5px; }
-.sf-label { font-family: 'Fira Code', monospace; font-size: 9px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--gray); line-height: 1.35; min-height: 26px; }
+.sf-label { font-family: 'Fira Code', monospace; font-size: 9px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--gray); line-height: 1.35; min-height: 26px; white-space: normal; overflow-wrap: break-word; hyphens: auto; }
 .sf input[type="number"] {
   width: 100%; background: var(--dark-gray); border: 1px solid var(--mid-gray);
   color: #fff; font-family: 'Fira Code', monospace; font-size: 16px; font-weight: 700;
@@ -148,18 +155,18 @@ select option { background: #111; color: #fff; }
   -moz-appearance: textfield; border-radius: 0;
 }
 .sf input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; }
-.sf input[type="number"]:focus { border-color: #6eb0ff; }
+.sf input[type="number"]:focus { border-color: var(--blue); }
 .stotal { text-align: center; padding: 8px 4px; border: 1px solid var(--green); background: rgba(0,255,0,0.04); }
 .stotal .stlabel { font-size: 9px; font-family: 'Fira Code', monospace; text-transform: uppercase; letter-spacing: 0.06em; color: var(--green); margin-bottom: 3px; }
 .stotal .stval { font-size: 20px; font-weight: 700; font-family: 'Fira Code', monospace; color: var(--green); }
 
 .llm-box { background: #040c00; border: 1px solid #1a3800; padding: 14px 16px; margin: 10px 0; min-height: 52px; }
-.llm-thinking { font-size: 12px; color: #3a6a00; font-style: italic; font-family: 'Fira Code', monospace; }
+.llm-thinking { font-size: 12px; color: #6db800; font-style: italic; font-family: 'Fira Code', monospace; }
 .llm-text { font-size: 12px; color: #99c040; font-family: 'Fira Code', monospace; line-height: 1.6; }
 
 .llm-score-grid { display: grid; grid-template-columns: repeat(5, 1fr) 72px; gap: 8px; margin: 10px 0; }
 .lsbox { border: 1px solid #1a3800; padding: 8px 4px; text-align: center; }
-.lsbox .lslabel { font-size: 9px; font-family: 'Fira Code', monospace; text-transform: uppercase; letter-spacing: 0.05em; color: #3a6a00; line-height: 1.35; min-height: 26px; display: flex; align-items: center; justify-content: center; }
+.lsbox .lslabel { font-size: 9px; font-family: 'Fira Code', monospace; text-transform: uppercase; letter-spacing: 0.05em; color: #6db800; line-height: 1.35; min-height: 26px; display: flex; align-items: center; justify-content: center; }
 .lsbox .lsval { font-size: 18px; font-weight: 700; font-family: 'Fira Code', monospace; color: var(--green); }
 
 .final-row { display: flex; align-items: center; justify-content: space-between; padding: 14px 0 2px; border-top: 1px solid var(--mid-gray); margin-top: 14px; gap: 12px; flex-wrap: wrap; }
@@ -167,7 +174,7 @@ select option { background: #111; color: #fff; }
 .fsi { text-align: center; }
 .fsi .fsi-label { font-size: 10px; font-family: 'Fira Code', monospace; text-transform: uppercase; letter-spacing: 0.08em; color: var(--gray); }
 .fsi .fsi-val { font-size: 26px; font-weight: 700; font-family: 'Fira Code', monospace; }
-.fsi .fsi-val.h { color: #6eb0ff; }
+.fsi .fsi-val.h { color: var(--blue); }
 .fsi .fsi-val.l { color: var(--green); }
 .fsi .fsi-val.a { color: #fff; }
 
@@ -185,7 +192,7 @@ select option { background: #111; color: #fff; }
 .bcol { text-align: center; }
 .bcol .bv { display: block; font-family: 'Fira Code', monospace; font-size: 20px; font-weight: 700; }
 .bcol .bl { font-size: 10px; font-family: 'Fira Code', monospace; text-transform: uppercase; letter-spacing: 0.06em; color: var(--gray); }
-.bcol.hc .bv { color: #6eb0ff; }
+.bcol.hc .bv { color: var(--blue); }
 .bcol.lc .bv { color: var(--green); }
 .bcol.ac .bv { color: #fff; }
 
@@ -207,6 +214,16 @@ select option { background: #111; color: #fff; }
 
 .spinner { display: inline-block; width: 10px; height: 10px; border: 2px solid var(--mid-gray); border-top-color: var(--green); border-radius: 50%; animation: spin 0.7s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
+
+@media (max-width: 700px) {
+  nav { flex-direction: column; align-items: flex-start; gap: 10px; padding: 12px 16px; }
+  .nav-right { flex-direction: column; align-items: flex-start; gap: 8px; width: 100%; }
+  .nav-tabs { flex-wrap: wrap; }
+  .view { padding: 32px 16px; }
+  .score-grid, .llm-score-grid { grid-template-columns: repeat(3, 1fr); }
+  .board-header, .board-row { grid-template-columns: 32px 1fr 60px 60px 60px; gap: 4px; padding: 0 8px; }
+  .board-row { padding: 10px 8px; }
+}
 </style>
 </head>
 <body>
@@ -364,7 +381,7 @@ select option { background: #111; color: #fff; }
   </div>
   <div class="section">
     <div class="form-group">
-      <label class="form-label">Nome del Team</label>
+      <label class="form-label" for="f_team">Nome del Team</label>
       <div class="team-selector">
         <button class="team-btn" onclick="selectTeam(this,'Team Alpha')">Team Alpha</button>
         <button class="team-btn" onclick="selectTeam(this,'Team Beta')">Team Beta</button>
@@ -374,12 +391,12 @@ select option { background: #111; color: #fff; }
       <input type="text" id="f_team" placeholder="oppure digita un nome personalizzato…" oninput="syncTeam(this)">
     </div>
     <div class="form-group">
-      <label class="form-label">Nome dell'App</label>
+      <label class="form-label" for="f_appname">Nome dell'App</label>
       <input type="text" id="f_appname" placeholder="Dai un nome alla tua app…" maxlength="60" oninput="cc(this,'cc_appname',60)">
       <div class="char-count" id="cc_appname">0 / 60</div>
     </div>
     <div class="form-group">
-      <label class="form-label">Utente Principale</label>
+      <label class="form-label" for="f_user">Utente Principale</label>
       <select id="f_user">
         <option value="" disabled selected>Seleziona l'utente target…</option>
         <option>Interno — Content &amp; Produzione</option>
@@ -395,22 +412,22 @@ select option { background: #111; color: #fff; }
       </select>
     </div>
     <div class="form-group">
-      <label class="form-label">Descrizione del Problema</label>
+      <label class="form-label" for="f_problem">Descrizione del Problema</label>
       <textarea id="f_problem" rows="4" maxlength="500" placeholder="Quale problema specifico risolve? Chi ce l'ha, con quale frequenza e a quale costo?" oninput="cc(this,'cc_problem',500)"></textarea>
       <div class="char-count" id="cc_problem">0 / 500</div>
     </div>
     <div class="form-group">
-      <label class="form-label">Soluzione Proposta</label>
+      <label class="form-label" for="f_solution">Soluzione Proposta</label>
       <textarea id="f_solution" rows="4" maxlength="500" placeholder="Cosa fa l'app? Perché l'AI è essenziale — non solo utile?" oninput="cc(this,'cc_solution',500)"></textarea>
       <div class="char-count" id="cc_solution">0 / 500</div>
     </div>
     <div class="form-group">
-      <label class="form-label">3 Funzionalità Chiave (una per riga)</label>
+      <label class="form-label" for="f_features">3 Funzionalità Chiave (una per riga)</label>
       <textarea id="f_features" rows="4" maxlength="400" placeholder="Funzionalità 1&#10;Funzionalità 2&#10;Funzionalità 3" oninput="cc(this,'cc_features',400)"></textarea>
       <div class="char-count" id="cc_features">0 / 400</div>
     </div>
     <div class="form-group">
-      <label class="form-label">Valore di Business</label>
+      <label class="form-label" for="f_value">Valore di Business</label>
       <textarea id="f_value" rows="3" maxlength="300" placeholder="Quale impatto misurabile crea? Tempo risparmiato, ricavi, engagement, riduzione costi…" oninput="cc(this,'cc_value',300)"></textarea>
       <div class="char-count" id="cc_value">0 / 300</div>
     </div>
@@ -457,7 +474,7 @@ select option { background: #111; color: #fff; }
   </div>
 </div>
 
-<div class="toast" id="toast"></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <!-- Firebase SDK -->
 <script type="module">
@@ -516,11 +533,11 @@ onValue(ref(db, 'scores'), snap => {
 
 /* ═══════ CRITERIA ═══════ */
 const CRIT = [
-  { k:'p', l:'Chiarezza\nProblema'  },
-  { k:'a', l:'Necessità\nAI'        },
-  { k:'b', l:'Impatto\nBusiness'    },
-  { k:'f', l:'Fatti-\nbilità'       },
-  { k:'o', l:'Origina-\nlità'       },
+  { k:'p', l:'Chiarezza Problema'  },
+  { k:'a', l:'Necessità AI'        },
+  { k:'b', l:'Impatto Business'    },
+  { k:'f', l:'Fattibilità'         },
+  { k:'o', l:'Originalità'         },
 ];
 
 /* ═══════ NAV ═══════ */
@@ -538,7 +555,7 @@ window.timerToggle = function() {
     clearInterval(tInt); tRunning = false;
     document.getElementById('timerBtn').textContent = 'Riprendi';
   } else {
-    tInt = setInterval(() => {
+    function tickTimer() {
       tSecs--;
       const m = String(Math.floor(tSecs/60)).padStart(2,'0');
       const s = String(tSecs%60).padStart(2,'0');
@@ -546,7 +563,9 @@ window.timerToggle = function() {
       el.textContent = `${m}:${s}`;
       if (tSecs <= 300) el.classList.add('warn'); else el.classList.remove('warn');
       if (tSecs <= 0) { clearInterval(tInt); tRunning = false; document.getElementById('timerBtn').textContent = 'Avvia'; }
-    }, 1000);
+    }
+    tickTimer();
+    tInt = setInterval(tickTimer, 1000);
     tRunning = true;
     document.getElementById('timerBtn').textContent = 'Pausa';
   }
@@ -630,7 +649,8 @@ function renderJudge() {
       <div class="sf">
         <div class="sf-label">${c.l}</div>
         <input type="number" min="0" max="20" value="${h[c.k]||''}" placeholder="—"
-          oninput="saveH('${key}','${c.k}',this.value)">
+          aria-label="${c.l} (0–20)"
+          oninput="saveH('${key}','${c.k}',this.value,this)">
       </div>`).join('');
 
     return `
@@ -649,7 +669,7 @@ function renderJudge() {
   <div class="sc-field"><div class="sc-flabel">Funzionalità Chiave</div><div class="sc-fval" style="white-space:pre-line;">${escHtml(sub.features)}</div></div>
 
   <div class="judge-block">
-    <div class="judge-title human">_ Giudice Umano <span class="j-badge" style="border-color:#6eb0ff;color:#6eb0ff;">Bernardino</span></div>
+    <div class="judge-title human">_ Giudice Umano <span class="j-badge" style="border-color:var(--blue);color:var(--blue);">Bernardino</span></div>
     <div class="score-grid">
       ${humanInputs}
       <div class="stotal"><div class="stlabel">Totale</div><div class="stval" id="ht-${key}">${ht||'—'}</div></div>
@@ -666,10 +686,12 @@ function renderJudge() {
   }).join('');
 }
 
-window.saveH = function(key, k, v) {
+window.saveH = function(key, k, v, inputEl) {
   if (!localScores[key]) localScores[key] = { human: {} };
   if (!localScores[key].human) localScores[key].human = {};
-  localScores[key].human[k] = Math.min(20, Math.max(0, parseInt(v)||0));
+  const clamped = v === '' ? 0 : Math.min(20, Math.max(0, parseInt(v)||0));
+  localScores[key].human[k] = clamped;
+  if (inputEl && v !== '' && parseInt(v) !== clamped) inputEl.value = clamped;
   const total = CRIT.reduce((s,c) => s + (localScores[key].human[c.k]||0), 0);
   const el = document.getElementById('ht-' + key);
   if (el) el.textContent = total || '—';
@@ -759,7 +781,7 @@ function renderBoard() {
   el.innerHTML = `
     <div class="board-header">
       <span>#</span><span>Team / App</span>
-      <span style="color:#6eb0ff;">Umano</span>
+      <span style="color:var(--blue);">Umano</span>
       <span style="color:var(--green);">AI</span>
       <span>Media</span>
     </div>` +
@@ -772,7 +794,7 @@ function renderBoard() {
       </div>
       <div class="bcol hc"><span class="bv">${r.ht||'—'}</span><span class="bl">/ 100</span></div>
       <div class="bcol lc"><span class="bv">${r.hasLLM?r.lt:'—'}</span><span class="bl">/ 100</span></div>
-      <div class="bcol ac"><span class="bv">${r.hasLLM?Math.round(r.avg):r.ht||'—'}</span><span class="bl">/ 100</span></div>
+      <div class="bcol ac"><span class="bv">${r.hasLLM?Math.round(r.avg):'—'}</span><span class="bl">${r.hasLLM?'/ 100':'solo umano'}</span></div>
     </div>`).join('');
 }
 
