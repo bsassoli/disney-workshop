@@ -571,6 +571,22 @@ onValue(ref(db, 'scores'), snap => {
   renderAdmin();
 });
 
+// load persisted verdict
+onValue(ref(db, 'verdict'), snap => {
+  const v = snap.val();
+  if (!v || !v.html) return;
+  const el = document.getElementById('verdictContent');
+  const rows = v.rows || [];
+  el.innerHTML = rows.map((r,i) => `
+    <div class="verdict-card ${i===0?'winner':''}">
+      <div class="verdict-rank ${i===0?'first':''}">${i===0?'★ Vincitore':'#'+(i+1)}</div>
+      <div class="verdict-team">${escHtml(r.team)}</div>
+      <div class="verdict-app">> ${escHtml(r.appname)}</div>
+      <div class="verdict-score">Umano <strong>${r.ht}</strong> · AI <strong>${r.hasLLM?r.lt:'—'}</strong> · Media <strong>${r.hasLLM?r.avg:'—'}</strong> / 100</div>
+    </div>`).join('') +
+    `<div class="verdict-card" style="border-color:var(--green);"><div class="verdict-text">${v.html}</div></div>`;
+});
+
 /* ═══════ CRITERIA ═══════ */
 const CRIT = [
   { k:'p', l:'Chiarezza Problema'  },
@@ -1030,6 +1046,9 @@ Rispondi ESCLUSIVAMENTE con il codice HTML — niente JSON, niente markdown, nie
         <div class="verdict-score">Umano <strong>${r.ht}</strong> · AI <strong>${r.hasLLM?r.lt:'—'}</strong> · Media <strong>${r.hasLLM?Math.round(r.avg):'—'}</strong> / 100</div>
       </div>`).join('') +
       `<div class="verdict-card" style="border-color:var(--green);"><div class="verdict-text">${raw}</div></div>`;
+
+    // persist to Firebase
+    set(ref(db, 'verdict'), { html: raw, rows: rows.map(r => ({ team: r.sub.team, appname: r.sub.appname, ht: r.ht, lt: r.hasLLM ? r.lt : null, avg: r.hasLLM ? Math.round(r.avg) : null, hasLLM: r.hasLLM })) });
 
     document.getElementById('btnVerdict').disabled = false;
     toast('> verdetto generato!');
