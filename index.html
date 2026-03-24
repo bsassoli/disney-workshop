@@ -981,7 +981,7 @@ ISTRUZIONI:
 Rispondi ESCLUSIVAMENTE con il codice HTML — niente JSON, niente markdown, niente testo fuori dall'HTML.`;
 
   try {
-    const res = await fetch('/api/judge', {
+    const res = await fetch('/api/judge-stream', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -990,9 +990,31 @@ Rispondi ESCLUSIVAMENTE con il codice HTML — niente JSON, niente markdown, nie
         messages: [{ role: 'user', content: prompt }]
       })
     });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || `API error ${res.status}`);
-    const raw = (data.content||[]).find(b => b.type==='text')?.text || '';
+    if (!res.ok) { const err = await res.text(); throw new Error(err || `API error ${res.status}`); }
+    // read SSE stream and accumulate text
+    let raw = '';
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buf = '';
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buf += decoder.decode(value, { stream: true });
+      const lines = buf.split('\n');
+      buf = lines.pop();
+      for (const line of lines) {
+        if (!line.startsWith('data: ')) continue;
+        const payload = line.slice(6).trim();
+        if (payload === '[DONE]') continue;
+        try {
+          const evt = JSON.parse(payload);
+          if (evt.type === 'content_block_delta' && evt.delta?.text) {
+            raw += evt.delta.text;
+            el.innerHTML = '<div class="verdict-loading">> generazione del verdetto in corso…</div><div class="verdict-text">' + raw + '</div>';
+          }
+        } catch(e) {}
+      }
+    }
     if (!raw) throw new Error('Empty response');
 
     // build verdict page
