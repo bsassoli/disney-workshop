@@ -269,10 +269,10 @@ select option { background: #111; color: #fff; }
       <button class="nav-tab active"  onclick="showView('brief',this)">_ Brief</button>
       <button class="nav-tab"         onclick="showView('rubric',this)">&gt; Rubrica</button>
       <button class="nav-tab"         onclick="showView('submit',this)">+ Invia</button>
-      <button class="nav-tab admin-only" style="display:none;" onclick="showView('judge',this)">⊕ Giudica</button>
+      <button class="nav-tab"         onclick="showView('judge',this)">⊕ Giudica</button>
       <button class="nav-tab"         onclick="showView('board',this)">↑ Classifica</button>
-      <button class="nav-tab admin-only" style="display:none;color:var(--danger);" onclick="showView('admin',this)">⚙ AI</button>
-      <button class="nav-tab admin-only" style="display:none;" onclick="showView('verdict',this)">✦ Verdetto</button>
+      <button class="nav-tab"         onclick="showView('admin',this)">⚙ AI</button>
+      <button class="nav-tab"         onclick="showView('verdict',this)">✦ Verdetto</button>
     </div>
   </div>
 </nav>
@@ -280,7 +280,7 @@ select option { background: #111; color: #fff; }
 <!-- ══════════════════════ BRIEF ══════════════════════ -->
 <div id="view-brief" class="view active">
   <div style="margin-bottom:40px;">
-    <div class="eyebrow"><span class="dot"></span>Workshop in corso</div>
+    <div class="eyebrow"><span class="dot"></span>Workshop concluso</div>
     <h1><span class="marker">_</span>Costruite un'app con l'AI.<br>In 45 minuti.</h1>
     <p class="subtitle-text">The Walt Disney Company Italy &nbsp;·&nbsp; deepers.ai</p>
   </div>
@@ -397,9 +397,9 @@ select option { background: #111; color: #fff; }
   <div style="margin-bottom:36px;">
     <div class="eyebrow">Invio Brief del Team</div>
     <h1><span class="marker">_</span>Invia il Vostro Brief</h1>
-    <p class="subtitle-text">Un invio per team &nbsp;·&nbsp; Tutti i campi sono obbligatori</p>
+    <p class="subtitle-text">Workshop concluso &nbsp;·&nbsp; Le submissions non sono più modificabili</p>
   </div>
-  <div class="section">
+  <div class="section" style="opacity:0.5; pointer-events:none;">
     <div class="form-group">
       <label class="form-label" for="f_team">Nome del Team</label>
       <div class="team-selector">
@@ -473,9 +473,9 @@ select option { background: #111; color: #fff; }
 <!-- ══════════════════════ ADMIN AI (nascosto) ══════════════════════ -->
 <div id="view-admin" class="view">
   <div style="margin-bottom:36px;">
-    <div class="eyebrow" style="color:var(--danger);">Pannello Riservato</div>
+    <div class="eyebrow" style="color:var(--green);">Analisi AI</div>
     <h1><span class="marker">&gt;</span>AI Co-Giudice</h1>
-    <p class="subtitle-text">Lancia l'AI su ogni brief · i risultati appariranno in classifica solo dopo</p>
+    <p class="subtitle-text">Le valutazioni dell'AI co-giudice per ogni brief</p>
   </div>
   <div id="adminContent">
     <div class="empty"><div class="em">{ }</div><p>Nessun brief ancora.</p></div>
@@ -501,7 +501,7 @@ select option { background: #111; color: #fff; }
     <h1><span class="marker">✦</span>Verdetto Finale</h1>
     <p class="subtitle-text">La narrazione della gara, team per team</p>
   </div>
-  <div style="margin-bottom:20px;">
+  <div class="admin-only" style="display:none;margin-bottom:20px;">
     <button class="btn-sm" id="btnVerdict" onclick="generateVerdict()">✦ Genera Verdetto →</button>
   </div>
   <div id="verdictContent">
@@ -685,12 +685,16 @@ function renderJudge() {
     const h = (localScores[key]||{}).human||{};
     const ht = totH(key);
 
-    const humanInputs = CRIT.map(c => `
+    const humanInputs = CRIT.map(c => isAdmin ? `
       <div class="sf">
         <div class="sf-label">${c.l}</div>
         <input type="number" min="0" max="20" value="${h[c.k]||''}" placeholder="—"
           aria-label="${c.l} (0–20)"
           oninput="saveH('${key}','${c.k}',this.value,this)">
+      </div>` : `
+      <div class="sf">
+        <div class="sf-label">${c.l}</div>
+        <div style="font-family:'Fira Code',monospace;font-size:13px;padding:10px 14px;color:var(--blue);">${h[c.k]||'—'}/20</div>
       </div>`).join('');
 
     return `
@@ -1053,7 +1057,6 @@ const isAdmin = new URLSearchParams(window.location.search).has('admin');
 if (isAdmin) document.querySelectorAll('.admin-only').forEach(el => el.style.display = '');
 
 function renderAdmin() {
-  if (!isAdmin) return;
   const el = document.getElementById('adminContent');
   const subs = Object.entries(liveSubs);
   if (!subs.length) { el.innerHTML = '<div class="empty"><div class="em">{ }</div><p>Nessun brief ancora.</p></div>'; return; }
@@ -1088,9 +1091,9 @@ function renderAdmin() {
             </div>
           </div>`
         : hasLLM && hasHuman
-          ? `<button class="btn-sm" style="margin-top:10px;" onclick="runLLMPhase2('${key}')">⇄ Avvia Fase 2 — Confronto →</button>`
+          ? (isAdmin ? `<button class="btn-sm" style="margin-top:10px;" onclick="runLLMPhase2('${key}')">⇄ Avvia Fase 2 — Confronto →</button>` : '')
           : hasLLM
-            ? `<div class="llm-hint" style="margin-top:10px;font-size:11px;color:var(--mid-gray);">Assegna i punteggi umani per sbloccare la Fase 2</div>`
+            ? (isAdmin ? `<div class="llm-hint" style="margin-top:10px;font-size:11px;color:var(--mid-gray);">Assegna i punteggi umani per sbloccare la Fase 2</div>` : '')
             : '';
 
     const llmPart = sc.llmLoading
@@ -1103,7 +1106,7 @@ function renderAdmin() {
              <div class="lsbox" style="border-color:rgba(0,255,0,0.35)"><div class="lslabel">Totale</div><div class="lsval">${lt}</div></div>
            </div>
            ${phase2Html}`
-        : `<button class="btn-sm" onclick="runLLM('${key}')">_ Avvia Fase 1 — Valutazione Autonoma →</button>`;
+        : (isAdmin ? `<button class="btn-sm" onclick="runLLM('${key}')">_ Avvia Fase 1 — Valutazione Autonoma →</button>` : `<div class="llm-hint" style="font-size:11px;color:var(--mid-gray);">Valutazione AI non ancora eseguita</div>`);
 
     return `
 <div class="sub-card">
